@@ -53,3 +53,4 @@ dart_analyze*.txt
 .gemini/
 
 
+/docs/*
