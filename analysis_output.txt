@@ -1,0 +1,27 @@
+﻿Analyzing songrush-party...                                     
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\game\game_screen.dart:163:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\home_screen.dart:35:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\home_screen.dart:108:30 - deprecated_member_use
+warning - Unused import: 'package:songrush_party/models/player.dart' - lib\features\party\create_party_screen.dart:6:8 - unused_import
+warning - Unused import: 'package:songrush_party/models/player.dart' - lib\features\party\join_party_screen.dart:5:8 - unused_import
+
+flutter : 5 issues 
+found. (ran in 1.1s)
+In Zeile:1 Zeichen:1
++ flutter analyze 
+2>&1 | Out-File 
+-FilePath 
+analysis_output.txt 
+-Encodi ...
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (5 issues f   
+ ound. (ran in 1.1    
+s):String) [], Re    
+moteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 

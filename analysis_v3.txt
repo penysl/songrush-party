@@ -1,0 +1,9 @@
+﻿Analyzing songrush-party...                                     
+
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\core\theme\app_theme.dart:19:9 - deprecated_member_use
+warning - Unused import: 'package:songrush_party/models/buzzer.dart' - lib\features\game\game_screen.dart:8:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\game\game_screen.dart:164:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\home_screen.dart:35:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\home_screen.dart:108:30 - deprecated_member_use
+  error - The function 'LobbyScreen' isn't defined - lib\main.dart:31:16 - undefined_function
+

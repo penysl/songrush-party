@@ -1,0 +1,34 @@
+﻿Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 91.0.0 (94.0.0 available)
+  analyzer 8.4.1 (10.0.2 available)
+  app_links 6.4.1 (7.0.0 available)
+  characters 1.4.0 (1.4.1 available)
+  dart_style 3.1.3 (3.1.5 available)
+  matcher 0.12.17 (0.12.18 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.17.0 (1.18.1 available)
+  test 1.26.3 (1.29.0 available)
+  test_api 0.7.7 (0.7.9 available)
+  test_core 0.6.12 (0.6.15 available)
+Got dependencies!
+11 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing songrush-party...                                     
+
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\core\theme\app_theme.dart:19:9 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\home_screen.dart:35:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\home_screen.dart:108:30 - deprecated_member_use
+warning - Unused import: 'package:songrush_party/core/theme/app_theme.dart' - lib\features\party\create_party_screen.dart:4:8 - unused_import
+  error - The function 'StateNotifierProvider' isn't defined - lib\features\party\party_controller.dart:13:33 - undefined_function
+  error - Classes can only extend other classes - lib\features\party\party_controller.dart:17:31 - extends_non_class
+  error - Too many positional arguments: 0 expected, but 1 found - lib\features\party\party_controller.dart:20:50 - extra_positional_arguments
+  error - Undefined name 'state' - lib\features\party\party_controller.dart:34:5 - undefined_identifier
+  error - Undefined name 'state' - lib\features\party\party_controller.dart:66:7 - undefined_identifier
+  error - Undefined name 'state' - lib\features\party\party_controller.dart:68:7 - undefined_identifier
+  error - Undefined name 'state' - lib\features\party\party_controller.dart:74:5 - undefined_identifier
+  error - Undefined name 'state' - lib\features\party\party_controller.dart:99:7 - undefined_identifier
+  error - Undefined name 'state' - lib\features\party\party_controller.dart:101:7 - undefined_identifier
+  error - Undefined name 'state' - lib\features\party\party_controller.dart:107:5 - undefined_identifier
+  error - The name 'MyApp' isn't a class - test\widget_test.dart:16:35 - creation_with_non_type
+
