@@ -52,5 +52,4 @@ app.*.map.json
 dart_analyze*.txt
 .gemini/
 
-
-/docs/*
+docs/
