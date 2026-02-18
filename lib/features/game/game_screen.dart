@@ -7,139 +7,114 @@ import 'package:songrush_party/features/game/game_controller.dart';
 import 'package:songrush_party/features/party/party_controller.dart';
 import 'package:songrush_party/models/party.dart';
 import 'package:songrush_party/models/round.dart';
+import 'package:songrush_party/services/spotify_service.dart';
 
 class GameScreen extends ConsumerWidget {
   final String partyId;
   final String playerId;
 
   const GameScreen({
-    super.key, 
-    required this.partyId, 
+    super.key,
+    required this.partyId,
     required this.playerId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final partyStream = ref.watch(supabaseServiceProvider).streamParty(partyId);
-    
+    final partyStream =
+        ref.watch(supabaseServiceProvider).streamParty(partyId);
+
     return Scaffold(
       body: StreamBuilder(
         stream: partyStream,
         builder: (context, partySnapshot) {
-           if (!partySnapshot.hasData || partySnapshot.data!.isEmpty) {
-             return const Center(child: CircularProgressIndicator());
-           }
-           
-           final partyMap = partySnapshot.data!.first;
-           final party = Party.fromMap(partyMap);
+          if (!partySnapshot.hasData || partySnapshot.data!.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-           // If game is finished, navigate to scoreboard
-           if (party.status == 'finished') {
-             WidgetsBinding.instance.addPostFrameCallback((_) {
-               context.go('/scoreboard/$partyId/$playerId');
-             });
-             return const Center(child: CircularProgressIndicator());
-           }
+          final party = Party.fromMap(partySnapshot.data!.first);
 
-           // Watch Current Round
-           final roundAsync = ref.watch(currentRoundProvider(partyId));
-           // Watch Local Player for isHost status
-           final playerStream = ref.watch(supabaseServiceProvider).players.stream(primaryKey: ['id']).eq('id', playerId).limit(1);
+          if (party.status == 'finished') {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/scoreboard/$partyId/$playerId');
+            });
+            return const Center(child: CircularProgressIndicator());
+          }
 
-           return StreamBuilder<List<Map<String, dynamic>>>(
-             stream: playerStream,
-             builder: (context, playerSnapshot) {
-               final isHost = playerSnapshot.hasData && 
-                              playerSnapshot.data!.isNotEmpty && 
-                              playerSnapshot.data!.first['is_host'] == true;
+          // Determine if this player is the host
+          final playerStream = ref
+              .watch(supabaseServiceProvider)
+              .players
+              .stream(primaryKey: ['id'])
+              .eq('id', playerId)
+              .limit(1);
 
-               return roundAsync.when(
-                 data: (round) {
-                   if (round == null || round.status == 'finished') {
-                     // No active round — show waiting view
-                     return _WaitingView(
-                       partyId: partyId,
-                       playerId: playerId,
-                       isHost: isHost,
-                       lastRound: round,
-                     ); 
-                   }
+          final roundAsync = ref.watch(currentRoundProvider(partyId));
 
-                   return _ActiveRoundView(
-                     party: party,
-                     round: round,
-                     playerId: playerId,
-                   );
-                 },
-                 loading: () => const Center(child: CircularProgressIndicator()),
-                 error: (err, stack) => Center(child: Text('Error: $err')),
-               );
-             },
-           );
+          return StreamBuilder<List<Map<String, dynamic>>>(
+            stream: playerStream,
+            builder: (context, playerSnapshot) {
+              final isHost = playerSnapshot.hasData &&
+                  playerSnapshot.data!.isNotEmpty &&
+                  playerSnapshot.data!.first['is_host'] == true;
+
+              return roundAsync.when(
+                data: (round) {
+                  if (round == null || round.status == 'finished') {
+                    return _WaitingView(
+                      partyId: partyId,
+                      playerId: playerId,
+                      isHost: isHost,
+                    );
+                  }
+
+                  // Round is 'answered' → show reveal
+                  if (round.status == 'answered') {
+                    return _RevealView(
+                      party: party,
+                      round: round,
+                      playerId: playerId,
+                      isHost: isHost,
+                    );
+                  }
+
+                  // Round is 'playing'
+                  return _ActiveRoundView(
+                    party: party,
+                    round: round,
+                    playerId: playerId,
+                    isHost: isHost,
+                  );
+                },
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Fehler: $e')),
+              );
+            },
+          );
         },
       ),
     );
   }
 }
 
-// ============================================
-// WAITING VIEW — Between rounds / Start round
-// ============================================
+// ============================================================
+// WAITING VIEW — Between rounds
+// ============================================================
 
-class _WaitingView extends ConsumerStatefulWidget {
+class _WaitingView extends ConsumerWidget {
   final String partyId;
   final String playerId;
   final bool isHost;
-  final Round? lastRound;
 
   const _WaitingView({
     required this.partyId,
     required this.playerId,
     required this.isHost,
-    this.lastRound,
   });
 
   @override
-  ConsumerState<_WaitingView> createState() => _WaitingViewState();
-}
-
-class _WaitingViewState extends ConsumerState<_WaitingView> {
-  final _songTitleController = TextEditingController();
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _songTitleController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _startRound() async {
-    final title = _songTitleController.text.trim();
-    if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte Songtitel eingeben!')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-    try {
-      await ref.read(gameControllerProvider).startRound(widget.partyId, title);
-      _songTitleController.clear();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Stream players for scoreboard display
+  Widget build(BuildContext context, WidgetRef ref) {
     final supabaseService = ref.watch(supabaseServiceProvider);
 
     return SafeArea(
@@ -151,19 +126,16 @@ class _WaitingViewState extends ConsumerState<_WaitingView> {
             padding: const EdgeInsets.all(24),
             decoration: const BoxDecoration(
               color: AppTheme.surface,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+              borderRadius:
+                  BorderRadius.vertical(bottom: Radius.circular(24)),
             ),
-            child: Column(
+            child: const Column(
               children: [
-                Icon(
-                  widget.lastRound != null ? Icons.emoji_events : Icons.music_note,
-                  size: 48,
-                  color: AppTheme.neonPink,
-                ),
-                const SizedBox(height: 8),
+                Icon(Icons.music_note, size: 48, color: AppTheme.neonPink),
+                SizedBox(height: 8),
                 Text(
-                  widget.lastRound != null ? 'NÄCHSTE RUNDE' : 'BEREIT?',
-                  style: const TextStyle(
+                  'NÄCHSTE RUNDE',
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
@@ -173,35 +145,47 @@ class _WaitingViewState extends ConsumerState<_WaitingView> {
             ),
           ),
 
-          // Live Scoreboard
+          // Live scoreboard
           Expanded(
             child: StreamBuilder(
-              stream: supabaseService.streamPlayers(widget.partyId),
+              stream: supabaseService.streamPlayers(partyId),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
                 final players = snapshot.data!;
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: players.length,
                   itemBuilder: (context, index) {
                     final p = players[index];
-                    final isMe = p['id'] == widget.playerId;
+                    final isMe = p['id'] == playerId;
                     return Card(
-                      color: isMe ? AppTheme.surface.withValues(alpha: 0.8) : AppTheme.surface,
+                      color: AppTheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: isMe ? const BorderSide(color: AppTheme.neonBlue, width: 2) : BorderSide.none,
+                        side: isMe
+                            ? const BorderSide(
+                                color: AppTheme.neonBlue, width: 2)
+                            : BorderSide.none,
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: p['is_host'] == true ? AppTheme.neonBlue : Colors.grey[800],
-                          child: Text('${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          backgroundColor: p['is_host'] == true
+                              ? AppTheme.neonBlue
+                              : Colors.grey[800],
+                          child: Text(
+                            '${index + 1}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                         title: Text(
                           p['name'] as String,
                           style: TextStyle(
-                            fontWeight: isMe ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isMe
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                         trailing: Text(
@@ -220,52 +204,29 @@ class _WaitingViewState extends ConsumerState<_WaitingView> {
             ),
           ),
 
-          // Host Controls
-          if (widget.isHost)
+          // Host controls
+          if (isHost)
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: Column(
+              child: Row(
                 children: [
-                  TextField(
-                    controller: _songTitleController,
-                    decoration: const InputDecoration(
-                      hintText: 'Songtitel eingeben...',
-                      prefixIcon: Icon(Icons.music_note),
-                      labelText: 'Korrekter Songtitel',
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: _StartRoundButton(partyId: partyId),
                     ),
-                    style: const TextStyle(color: Colors.white),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _startRound,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 24, height: 24,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                  )
-                                : const Text('RUNDE STARTEN'),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        height: 56,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[800],
-                          ),
-                          onPressed: () {
-                            ref.read(gameControllerProvider).endGame(widget.partyId);
-                          },
-                          child: const Text('BEENDEN'),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[800]),
+                      onPressed: () => ref
+                          .read(gameControllerProvider)
+                          .endGame(partyId),
+                      child: const Text('BEENDEN'),
+                    ),
                   ),
                 ],
               ),
@@ -284,28 +245,72 @@ class _WaitingViewState extends ConsumerState<_WaitingView> {
   }
 }
 
-// ============================================
-// ACTIVE ROUND VIEW — Buzzer + Answer
-// ============================================
+class _StartRoundButton extends ConsumerStatefulWidget {
+  final String partyId;
+  const _StartRoundButton({required this.partyId});
+
+  @override
+  ConsumerState<_StartRoundButton> createState() => _StartRoundButtonState();
+}
+
+class _StartRoundButtonState extends ConsumerState<_StartRoundButton> {
+  bool _loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: _loading ? null : _start,
+      child: _loading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                  color: Colors.white, strokeWidth: 2),
+            )
+          : const Text('RUNDE STARTEN'),
+    );
+  }
+
+  Future<void> _start() async {
+    setState(() => _loading = true);
+    try {
+      await ref.read(gameControllerProvider).startRound(widget.partyId);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+}
+
+// ============================================================
+// ACTIVE ROUND VIEW — Song is playing, player must guess
+// ============================================================
 
 class _ActiveRoundView extends ConsumerWidget {
   final Party party;
   final Round round;
   final String playerId;
+  final bool isHost;
 
   const _ActiveRoundView({
     required this.party,
     required this.round,
     required this.playerId,
+    required this.isHost,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final buzzerAsync = ref.watch(roundBuzzerProvider(round.id));
+    final isActivePlayer = round.activePlayerId == playerId;
 
     return Column(
       children: [
-        // Game Header
+        // Header: song is playing indicator
         SafeArea(
           bottom: false,
           child: Container(
@@ -313,191 +318,75 @@ class _ActiveRoundView extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
             decoration: const BoxDecoration(
               color: AppTheme.surface,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+              borderRadius:
+                  BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
-            child: Text(
-              'STATUS: ${round.status.toUpperCase().replaceAll('_', ' ')}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.graphic_eq,
+                    color: AppTheme.neonPink, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'SONG LÄUFT...',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                    fontSize: 16,
+                  ),
+                ),
+                // Host gets pause/skip controls
+                if (isHost) ...[
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.pause_circle_outline,
+                        color: Colors.white70),
+                    onPressed: () =>
+                        ref.read(spotifyServiceProvider).pausePlayback(),
+                    tooltip: 'Pause',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.skip_next, color: Colors.white70),
+                    onPressed: () => ref
+                        .read(gameControllerProvider)
+                        .skipRound(party.id, round.id),
+                    tooltip: 'Überspringen',
+                  ),
+                ],
+              ],
             ),
           ),
         ),
 
         Expanded(
-          child: buzzerAsync.when(
-            data: (buzzer) {
-                // If round is locked (buzzer exists)
-                if (buzzer != null) {
-                   if (buzzer.playerId == playerId) {
-                     // This player buzzed — show answer input with timer
-                     return _AnswerInputView(
-                       round: round,
-                       playerId: playerId,
-                     );
-                   } else {
-                     // Another player buzzed — show locked state
-                     return const Center(
-                       child: Column(
-                         mainAxisAlignment: MainAxisAlignment.center,
-                         children: [
-                           Icon(Icons.lock, size: 80, color: Colors.grey),
-                           SizedBox(height: 20),
-                           Text('GESPERRT',
-                             style: TextStyle(fontSize: 48, color: Colors.grey, fontWeight: FontWeight.bold)),
-                           SizedBox(height: 8),
-                           Text('Ein anderer Spieler antwortet...',
-                             style: TextStyle(color: Colors.white54)),
-                         ],
-                       ),
-                     );
-                   }
-                }
-
-                // If round is playing (no buzzer yet) — show buzzer button
-                return _BuzzerView(
-                  roundId: round.id,
-                  playerId: playerId,
-                );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, s) => Center(child: Text('Error: $e')),
-          ),
+          child: isActivePlayer
+              ? _GuessInputView(round: round, playerId: playerId)
+              : isHost
+                  ? _HostWatchView(round: round)
+                  : _OtherPlayerWaitView(round: round),
         ),
       ],
     );
   }
 }
 
-// ============================================
-// BUZZER VIEW — The big red button
-// ============================================
+// ── Active player: input field ───────────────────────────────
 
-class _BuzzerView extends ConsumerStatefulWidget {
-  final String roundId;
-  final String playerId;
-
-  const _BuzzerView({required this.roundId, required this.playerId});
-
-  @override
-  ConsumerState<_BuzzerView> createState() => _BuzzerViewState();
-}
-
-class _BuzzerViewState extends ConsumerState<_BuzzerView>
-    with SingleTickerProviderStateMixin {
-  bool _buzzing = false;
-  late AnimationController _pulseController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            'HÖRST DU DEN SONG?',
-            style: TextStyle(fontSize: 20, color: Colors.white54, letterSpacing: 2),
-          ),
-          const SizedBox(height: 40),
-          AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, child) {
-              final scale = 1.0 + (_pulseController.value * 0.05);
-              return Transform.scale(
-                scale: scale,
-                child: child,
-              );
-            },
-            child: GestureDetector(
-              onTap: _buzzing ? null : () async {
-                setState(() => _buzzing = true);
-                final success = await ref.read(gameControllerProvider)
-                    .buzz(widget.roundId, widget.playerId);
-                if (!success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Zu langsam! Jemand war schneller.')),
-                  );
-                }
-                if (mounted) setState(() => _buzzing = false);
-              },
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const RadialGradient(
-                    colors: [Color(0xFFFF4444), Color(0xFFCC0000)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withValues(alpha: 0.6),
-                      blurRadius: 40,
-                      spreadRadius: 10,
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: _buzzing
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'BUZZER',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 4,
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================
-// ANSWER INPUT VIEW — Timer + Answer Field
-// ============================================
-
-class _AnswerInputView extends ConsumerStatefulWidget {
+class _GuessInputView extends ConsumerStatefulWidget {
   final Round round;
   final String playerId;
 
-  const _AnswerInputView({
-    required this.round,
-    required this.playerId,
-  });
+  const _GuessInputView({required this.round, required this.playerId});
 
   @override
-  ConsumerState<_AnswerInputView> createState() => _AnswerInputViewState();
+  ConsumerState<_GuessInputView> createState() => _GuessInputViewState();
 }
 
-class _AnswerInputViewState extends ConsumerState<_AnswerInputView> {
-  final _answerController = TextEditingController();
+class _GuessInputViewState extends ConsumerState<_GuessInputView> {
+  final _controller = TextEditingController();
   Timer? _timer;
-  int _secondsLeft = 15;
+  int _secondsLeft = 30;
   bool _submitted = false;
-  AnswerResult? _result;
 
   @override
   void initState() {
@@ -506,100 +395,75 @@ class _AnswerInputViewState extends ConsumerState<_AnswerInputView> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
-        timer.cancel();
+        t.cancel();
         return;
       }
       setState(() {
         _secondsLeft--;
         if (_secondsLeft <= 0) {
-          timer.cancel();
-          _handleTimeout();
+          t.cancel();
+          _onTimeout();
         }
       });
     });
   }
 
-  void _handleTimeout() {
+  void _onTimeout() {
     if (_submitted) return;
     setState(() => _submitted = true);
-
-    // Timeout — reset buzzer for next player
-    ref.read(gameControllerProvider).resetBuzzer(widget.round.id);
+    // Mark round as answered with no winner so reveal shows
+    ref.read(supabaseServiceProvider).rounds.update({
+      'status': 'answered',
+    }).eq('id', widget.round.id);
+    try {
+      ref.read(spotifyServiceProvider).pausePlayback();
+    } catch (_) {}
   }
 
-  Future<void> _submitAnswer() async {
-    final answer = _answerController.text.trim();
+  Future<void> _submit() async {
+    final answer = _controller.text.trim();
     if (answer.isEmpty || _submitted) return;
-
     _timer?.cancel();
     setState(() => _submitted = true);
 
-    final correctAnswer = widget.round.correctAnswer ?? '';
-    final result = await ref.read(gameControllerProvider).submitAnswer(
-      roundId: widget.round.id,
-      playerId: widget.playerId,
-      answer: answer,
-      correctAnswer: correctAnswer,
-    );
-
-    if (mounted) {
-      setState(() => _result = result);
-    }
-
-    // If wrong, wait 2 seconds then reset buzzer for next player
-    if (!result.correct) {
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        await ref.read(gameControllerProvider).resetBuzzer(widget.round.id);
-      }
-    }
+    await ref.read(gameControllerProvider).submitAnswer(
+          roundId: widget.round.id,
+          playerId: widget.playerId,
+          answer: answer,
+          correctAnswer: widget.round.correctAnswer ?? '',
+        );
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _answerController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Show result feedback
-    if (_result != null) {
-      return _buildResultView();
-    }
-
-    // Show timeout feedback
-    if (_submitted && _result == null) {
-      return Center(
+    if (_submitted) {
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.timer_off, size: 80, color: Colors.orange),
-            const SizedBox(height: 20),
-            const Text(
-              'ZEIT ABGELAUFEN!',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.orange),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Nächster Spieler darf buzzern...',
-              style: TextStyle(color: Colors.white54),
-            ),
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Antwort wird geprüft...', style: TextStyle(color: Colors.white54)),
           ],
         ),
       );
     }
 
-    // Answer input with timer
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Timer
+          // Timer ring
           Stack(
             alignment: Alignment.center,
             children: [
@@ -607,7 +471,7 @@ class _AnswerInputViewState extends ConsumerState<_AnswerInputView> {
                 width: 100,
                 height: 100,
                 child: CircularProgressIndicator(
-                  value: _secondsLeft / 15,
+                  value: _secondsLeft / 30,
                   strokeWidth: 8,
                   backgroundColor: Colors.grey[800],
                   valueColor: AlwaysStoppedAnimation(
@@ -626,20 +490,22 @@ class _AnswerInputViewState extends ConsumerState<_AnswerInputView> {
             ],
           ),
           const SizedBox(height: 24),
-
           const Text(
-            'DU HAST GEBUZZERT!',
+            'DU BIST DRAN!',
             style: TextStyle(
               fontSize: 24,
               color: AppTheme.neonPink,
               fontWeight: FontWeight.bold,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
-
+          const SizedBox(height: 8),
+          const Text(
+            'Hör gut zu und rate den Songnamen',
+            style: TextStyle(color: Colors.white54),
+          ),
+          const SizedBox(height: 32),
           TextField(
-            controller: _answerController,
+            controller: _controller,
             autofocus: true,
             decoration: const InputDecoration(
               hintText: 'Wie heißt der Song?',
@@ -647,15 +513,14 @@ class _AnswerInputViewState extends ConsumerState<_AnswerInputView> {
               prefixIcon: Icon(Icons.edit),
             ),
             style: const TextStyle(color: Colors.white, fontSize: 18),
-            onSubmitted: (_) => _submitAnswer(),
+            onSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 24),
-
           SizedBox(
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: _submitAnswer,
+              onPressed: _submit,
               child: const Text('SENDEN'),
             ),
           ),
@@ -663,52 +528,291 @@ class _AnswerInputViewState extends ConsumerState<_AnswerInputView> {
       ),
     );
   }
+}
 
-  Widget _buildResultView() {
-    final isCorrect = _result!.correct;
+// ── Host watching view ────────────────────────────────────────
+
+class _HostWatchView extends StatelessWidget {
+  final Round round;
+  const _HostWatchView({required this.round});
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isCorrect ? Icons.check_circle : Icons.cancel,
-            size: 100,
-            color: isCorrect ? Colors.green : Colors.red,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            isCorrect ? 'RICHTIG! 🎉' : 'FALSCH!',
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: isCorrect ? Colors.green : Colors.red,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${(_result!.similarity * 100).toInt()}% Übereinstimmung',
-            style: const TextStyle(color: Colors.white54, fontSize: 16),
-          ),
-          if (isCorrect) ...[
-            const SizedBox(height: 8),
-            const Text(
-              '+1 Punkt!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.neonBlue,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (round.albumCoverUrl != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  round.albumCoverUrl!,
+                  width: 180,
+                  height: 180,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-          ],
-          if (!isCorrect) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            const Icon(Icons.hearing, size: 48, color: AppTheme.neonBlue),
+            const SizedBox(height: 12),
             const Text(
-              'Nächster Spieler darf buzzern...',
-              style: TextStyle(color: Colors.white54),
+              'Spieler hört zu...',
+              style: TextStyle(fontSize: 18, color: Colors.white70),
             ),
           ],
-        ],
+        ),
       ),
     );
+  }
+}
+
+// ── Other players waiting view ────────────────────────────────
+
+class _OtherPlayerWaitView extends ConsumerWidget {
+  final Round round;
+  const _OtherPlayerWaitView({required this.round});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Look up active player name
+    final playerStream = round.activePlayerId != null
+        ? ref
+            .watch(supabaseServiceProvider)
+            .players
+            .stream(primaryKey: ['id'])
+            .eq('id', round.activePlayerId!)
+            .limit(1)
+        : null;
+
+    if (playerStream == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: playerStream,
+      builder: (context, snapshot) {
+        final name = snapshot.hasData && snapshot.data!.isNotEmpty
+            ? snapshot.data!.first['name'] as String
+            : '...';
+
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.music_note, size: 72, color: Colors.white24),
+              const SizedBox(height: 24),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.neonBlue,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'ist dran',
+                style: TextStyle(fontSize: 20, color: Colors.white54),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================
+// REVEAL VIEW — Show answer after guess
+// ============================================================
+
+class _RevealView extends ConsumerWidget {
+  final Party party;
+  final Round round;
+  final String playerId;
+  final bool isHost;
+
+  const _RevealView({
+    required this.party,
+    required this.round,
+    required this.playerId,
+    required this.isHost,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isWinner = round.winnerId == playerId;
+    final isActivePlayer = round.activePlayerId == playerId;
+    final correct = round.winnerId != null;
+
+    return SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Result icon
+              Icon(
+                correct ? Icons.check_circle : Icons.cancel,
+                size: 80,
+                color: correct ? Colors.green : Colors.red,
+              ),
+              const SizedBox(height: 16),
+
+              // Correct / Wrong label (shown to active player)
+              if (isActivePlayer)
+                Text(
+                  correct ? 'RICHTIG!' : 'FALSCH!',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: correct ? Colors.green : Colors.red,
+                  ),
+                ),
+
+              if (!isActivePlayer)
+                Text(
+                  correct
+                      ? '${_playerName(round)} hat es gewusst!'
+                      : 'Leider falsch...',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: correct ? Colors.green : Colors.red,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+              const SizedBox(height: 24),
+
+              // Album cover
+              if (round.albumCoverUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.network(
+                    round.albumCoverUrl!,
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+
+              const SizedBox(height: 20),
+
+              // Song title
+              Text(
+                round.correctAnswer ?? '',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              if (round.artistName != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  round.artistName!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white54,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+
+              if (correct && isWinner) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  '+1 Punkt!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.neonBlue,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 40),
+
+              // Only host can proceed
+              if (isHost)
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: _NextRoundButton(
+                    partyId: party.id,
+                    currentRoundId: round.id,
+                  ),
+                )
+              else
+                const Text(
+                  'Warte auf Host...',
+                  style: TextStyle(color: Colors.white54, fontSize: 16),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _playerName(Round round) {
+    // Fallback: active player name is resolved via stream in _OtherPlayerWaitView.
+    // Here we just return a placeholder since we don't have the name synchronously.
+    return 'Spieler';
+  }
+}
+
+class _NextRoundButton extends ConsumerStatefulWidget {
+  final String partyId;
+  final String currentRoundId;
+
+  const _NextRoundButton({
+    required this.partyId,
+    required this.currentRoundId,
+  });
+
+  @override
+  ConsumerState<_NextRoundButton> createState() => _NextRoundButtonState();
+}
+
+class _NextRoundButtonState extends ConsumerState<_NextRoundButton> {
+  bool _loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: _loading ? null : _next,
+      child: _loading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                  color: Colors.white, strokeWidth: 2),
+            )
+          : const Text('WEITER'),
+    );
+  }
+
+  Future<void> _next() async {
+    setState(() => _loading = true);
+    try {
+      await ref
+          .read(gameControllerProvider)
+          .nextRound(widget.partyId, widget.currentRoundId);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 }
