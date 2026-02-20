@@ -36,36 +36,51 @@ class GameController {
 
   /// Start a new round:
   /// - Determines the active player from party.current_player_index
-  /// - Fetches a random track for the party's genre
+  /// - Fetches a random unused track from the party's playlist (or falls back to genre)
   /// - Creates the round in DB
   /// - Plays the track on the host's Spotify device
   Future<void> startRound(String partyId) async {
     // 1. Fetch party data
     final partyData = await _db.parties
-        .select('genre, current_player_index')
+        .select('genre, current_player_index, playlist_id, used_track_ids')
         .eq('id', partyId)
         .single();
 
     final genre = (partyData['genre'] as String?) ?? 'Pop';
     final playerIndex = (partyData['current_player_index'] as int?) ?? 0;
+    final playlistId = partyData['playlist_id'] as String?;
+    final usedTrackIds = ((partyData['used_track_ids'] as List?) ?? [])
+        .map((e) => e as String)
+        .toList();
 
     // 2. Fetch players ordered by join time to determine who's up
     final playersData = await _db.players
         .select('id')
         .eq('party_id', partyId)
-        .order('joined_at', ascending: true);
+        .order('created_at', ascending: true);
 
     if (playersData.isEmpty) return;
     final activePlayerId =
         playersData[playerIndex % playersData.length]['id'] as String;
 
-    // 3. Get a random Spotify track for the genre
-    final track = await _spotify.getRandomTrackForGenre(genre);
+    // 3. Get a random Spotify track
+    final Map<String, dynamic> track;
+    if (playlistId != null && playlistId.isNotEmpty) {
+      track = await _spotify.getRandomUnusedTrackFromPlaylist(playlistId, usedTrackIds);
+    } else {
+      track = await _spotify.getRandomTrackForGenre(genre);
+    }
 
-    // 4. Create round in DB
+    // 4. Update used_track_ids to prevent repeats
+    if (playlistId != null && playlistId.isNotEmpty) {
+      final updatedUsed = [...usedTrackIds, track['id'] as String];
+      await _db.parties.update({'used_track_ids': updatedUsed}).eq('id', partyId);
+    }
+
+    // 5. Create round in DB
     final roundData = await _db.rounds.insert({
       'party_id': partyId,
-      'spotify_track_id': track['spotifyUri'] as String,
+      'song_id': track['spotifyUri'] as String,
       'status': 'playing',
       'correct_answer': track['name'] as String,
       'active_player_id': activePlayerId,
@@ -75,12 +90,12 @@ class GameController {
 
     final round = Round.fromMap(roundData);
 
-    // 5. Update party: set current round
+    // 6. Update party: set current round
     await _db.parties.update({
       'current_round_id': round.id,
     }).eq('id', partyId);
 
-    // 6. Play on host's Spotify device
+    // 7. Play on host's Spotify device
     await _spotify.playTrack(track['spotifyUri'] as String);
   }
 

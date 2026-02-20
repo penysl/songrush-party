@@ -19,6 +19,12 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
     final name = _nameController.text.trim();
     final code = _codeController.text.trim();
     if (name.isEmpty || code.isEmpty) return;
+    if (code.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Der Code muss genau 6 Zeichen lang sein.')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -59,6 +65,7 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
                 prefixIcon: Icon(Icons.numbers),
               ),
               textCapitalization: TextCapitalization.characters,
+              maxLength: 6,
             ),
             const SizedBox(height: 40),
             SizedBox(
@@ -66,8 +73,12 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
               height: 56,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _joinParty,
-                child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white) 
+                child: _isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
                   : const Text('BEITRETEN'),
               ),
             ),

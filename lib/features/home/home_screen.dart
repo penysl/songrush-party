@@ -97,8 +97,9 @@ class _MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonWidth = (MediaQuery.sizeOf(context).width - 48).clamp(220.0, 300.0);
     return SizedBox(
-      width: 250,
+      width: buttonWidth,
       height: 60,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
@@ -109,7 +110,12 @@ class _MenuButton extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
         onPressed: onPressed,
-        child: Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     );
   }

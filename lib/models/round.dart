@@ -1,8 +1,10 @@
+enum RoundStatus { playing, answered, finished }
+
 class Round {
   final String id;
   final String partyId;
   final String spotifyTrackId;
-  final String status; // playing, answered, finished
+  final RoundStatus status;
   final DateTime startedAt;
   final String? winnerId;
   final String? correctAnswer;
@@ -27,8 +29,11 @@ class Round {
     return Round(
       id: map['id'] as String,
       partyId: map['party_id'] as String,
-      spotifyTrackId: map['spotify_track_id'] as String,
-      status: map['status'] as String? ?? 'playing',
+      spotifyTrackId: (map['song_id'] ?? map['spotify_track_id']) as String? ?? '',
+      status: RoundStatus.values.firstWhere(
+        (e) => e.name == (map['status'] as String? ?? 'playing'),
+        orElse: () => RoundStatus.playing,
+      ),
       startedAt: DateTime.parse(
         map['created_at'] as String? ??
             map['started_at'] as String? ??
@@ -46,8 +51,8 @@ class Round {
     return {
       'id': id,
       'party_id': partyId,
-      'spotify_track_id': spotifyTrackId,
-      'status': status,
+      'song_id': spotifyTrackId,
+      'status': status.name,
       'created_at': startedAt.toIso8601String(),
       'winner_id': winnerId,
       'correct_answer': correctAnswer,

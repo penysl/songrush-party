@@ -51,6 +51,15 @@ app.*.map.json
 
 # Logs and temporary files
 dart_analyze*.txt
+analysis*.txt
+run_error.txt
+*.log
 .gemini/
+
+# Claude Code (local settings, nicht teilen)
+.claude/
+
+# Flutter tooling
+.flutter-plugins
 
 docs/

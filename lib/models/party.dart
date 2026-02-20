@@ -7,6 +7,8 @@ class Party {
   final String genre;
   final int currentPlayerIndex;
   final DateTime createdAt;
+  final String? playlistId;
+  final String? playlistName;
 
   Party({
     required this.id,
@@ -17,6 +19,8 @@ class Party {
     this.genre = 'pop',
     this.currentPlayerIndex = 0,
     required this.createdAt,
+    this.playlistId,
+    this.playlistName,
   });
 
   factory Party.fromMap(Map<String, dynamic> map) {
@@ -29,6 +33,8 @@ class Party {
       genre: (map['genre'] as String?) ?? 'pop',
       currentPlayerIndex: (map['current_player_index'] as int?) ?? 0,
       createdAt: DateTime.parse(map['created_at'] as String),
+      playlistId: map['playlist_id'] as String?,
+      playlistName: map['playlist_name'] as String?,
     );
   }
 
@@ -42,6 +48,8 @@ class Party {
       'genre': genre,
       'current_player_index': currentPlayerIndex,
       'created_at': createdAt.toIso8601String(),
+      'playlist_id': playlistId,
+      'playlist_name': playlistName,
     };
   }
 }

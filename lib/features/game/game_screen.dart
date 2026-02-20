@@ -60,7 +60,7 @@ class GameScreen extends ConsumerWidget {
 
               return roundAsync.when(
                 data: (round) {
-                  if (round == null || round.status == 'finished') {
+                  if (round == null || round.status == RoundStatus.finished) {
                     return _WaitingView(
                       partyId: partyId,
                       playerId: playerId,
@@ -69,7 +69,7 @@ class GameScreen extends ConsumerWidget {
                   }
 
                   // Round is 'answered' → show reveal
-                  if (round.status == 'answered') {
+                  if (round.status == RoundStatus.answered) {
                     return _RevealView(
                       party: party,
                       round: round,
@@ -400,25 +400,26 @@ class _GuessInputViewState extends ConsumerState<_GuessInputView> {
         t.cancel();
         return;
       }
-      setState(() {
-        _secondsLeft--;
-        if (_secondsLeft <= 0) {
-          t.cancel();
-          _onTimeout();
-        }
-      });
+      setState(() => _secondsLeft--);
+      if (_secondsLeft <= 0) {
+        t.cancel();
+        _onTimeout();
+      }
     });
   }
 
-  void _onTimeout() {
-    if (_submitted) return;
+  Future<void> _onTimeout() async {
+    if (_submitted || !mounted) return;
     setState(() => _submitted = true);
-    // Mark round as answered with no winner so reveal shows
-    ref.read(supabaseServiceProvider).rounds.update({
-      'status': 'answered',
-    }).eq('id', widget.round.id);
     try {
-      ref.read(spotifyServiceProvider).pausePlayback();
+      await ref.read(supabaseServiceProvider).rounds.update({
+        'status': 'answered',
+      }).eq('id', widget.round.id);
+    } catch (e) {
+      debugPrint('Timeout-Submit fehlgeschlagen: $e');
+    }
+    try {
+      await ref.read(spotifyServiceProvider).pausePlayback();
     } catch (_) {}
   }
 
@@ -673,18 +674,41 @@ class _RevealView extends ConsumerWidget {
                   ),
                 ),
 
-              if (!isActivePlayer)
-                Text(
-                  correct
-                      ? '${_playerName(round)} hat es gewusst!'
-                      : 'Leider falsch...',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: correct ? Colors.green : Colors.red,
+              if (!isActivePlayer) ...[
+                if (!correct)
+                  const Text(
+                    'Leider falsch...',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                    textAlign: TextAlign.center,
+                  )
+                else
+                  StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: ref
+                        .watch(supabaseServiceProvider)
+                        .players
+                        .stream(primaryKey: ['id'])
+                        .eq('id', round.activePlayerId ?? '')
+                        .limit(1),
+                    builder: (context, snapshot) {
+                      final name = snapshot.hasData && snapshot.data!.isNotEmpty
+                          ? snapshot.data!.first['name'] as String
+                          : '...';
+                      return Text(
+                        '$name hat es gewusst!',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                        textAlign: TextAlign.center,
+                      );
+                    },
                   ),
-                  textAlign: TextAlign.center,
-                ),
+              ],
 
               const SizedBox(height: 24),
 
@@ -761,11 +785,7 @@ class _RevealView extends ConsumerWidget {
     );
   }
 
-  String _playerName(Round round) {
-    // Fallback: active player name is resolved via stream in _OtherPlayerWaitView.
-    // Here we just return a placeholder since we don't have the name synchronously.
-    return 'Spieler';
-  }
+
 }
 
 class _NextRoundButton extends ConsumerStatefulWidget {

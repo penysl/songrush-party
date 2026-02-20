@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:songrush_party/models/party.dart';
 import 'package:songrush_party/models/player.dart';
@@ -31,12 +32,12 @@ class PartyController extends StateNotifier<AsyncValue<Party?>> {
 
   // Create a new party
   Future<Player?> createParty(String hostName) async {
-    print('DEBUG: createParty called for $hostName');
+    debugPrint('DEBUG: createParty called for $hostName');
     state = const AsyncLoading();
     try {
       final code = _generatePartyCode();
       final hostId = const Uuid().v4(); 
-      print('DEBUG: Generated code: $code, hostId: $hostId');
+      debugPrint('DEBUG: Generated code: $code, hostId: $hostId');
 
       // 1. Create Party
       final partyResponse = await _supabaseService.parties.insert({
@@ -44,7 +45,7 @@ class PartyController extends StateNotifier<AsyncValue<Party?>> {
         'host_id': hostId,
         'status': 'lobby',
       }).select().single();
-      print('DEBUG: Party created: $partyResponse');
+      debugPrint('DEBUG: Party created: $partyResponse');
 
       final party = Party.fromMap(partyResponse);
 
@@ -54,7 +55,7 @@ class PartyController extends StateNotifier<AsyncValue<Party?>> {
         'name': hostName,
         'is_host': true,
       }).select().single();
-      print('DEBUG: Player (Host) added: $playerResponse');
+      debugPrint('DEBUG: Player (Host) added: $playerResponse');
 
       final player = Player.fromMap(playerResponse);
 
@@ -62,13 +63,13 @@ class PartyController extends StateNotifier<AsyncValue<Party?>> {
       await _supabaseService.parties.update({
         'host_id': player.id,
       }).eq('id', party.id);
-      print('DEBUG: Party host_id updated to: ${player.id}');
+      debugPrint('DEBUG: Party host_id updated to: ${player.id}');
 
       state = AsyncData(party);
       return player;
     } catch (e, stack) {
-      print('DEBUG: createParty error: $e');
-      print('DEBUG: Stacktrace: $stack');
+      debugPrint('DEBUG: createParty error: $e');
+      debugPrint('DEBUG: Stacktrace: $stack');
       state = AsyncError(e, stack);
       rethrow; // Rethrow so the UI can catch it and show SnackBar
     }
@@ -76,7 +77,7 @@ class PartyController extends StateNotifier<AsyncValue<Party?>> {
 
   // Join an existing party
   Future<Player?> joinParty(String code, String playerName) async {
-    print('DEBUG: joinParty called for $playerName with code $code');
+    debugPrint('DEBUG: joinParty called for $playerName with code $code');
     state = const AsyncLoading();
     try {
       // 1. Find party
@@ -85,7 +86,7 @@ class PartyController extends StateNotifier<AsyncValue<Party?>> {
           .eq('code', code.toUpperCase())
           .maybeSingle();
 
-      print('DEBUG: JoinParty find party response: $partyResponse');
+      debugPrint('DEBUG: JoinParty find party response: $partyResponse');
 
       if (partyResponse == null) {
         throw Exception('Party not found');
@@ -104,15 +105,15 @@ class PartyController extends StateNotifier<AsyncValue<Party?>> {
         'is_host': false,
       }).select().single();
 
-      print('DEBUG: JoinParty player added response: $playerResponse');
+      debugPrint('DEBUG: JoinParty player added response: $playerResponse');
 
       final player = Player.fromMap(playerResponse);
 
       state = AsyncData(party);
       return player;
     } catch (e, stack) {
-      print('DEBUG: joinParty error: $e');
-      print('DEBUG: JoinParty stacktrace: $stack');
+      debugPrint('DEBUG: joinParty error: $e');
+      debugPrint('DEBUG: JoinParty stacktrace: $stack');
       state = AsyncError(e, stack);
       rethrow;
     }

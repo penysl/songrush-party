@@ -11,8 +11,6 @@ class SupabaseService {
   SupabaseQueryBuilder get parties => _client.from('parties');
   SupabaseQueryBuilder get players => _client.from('players');
   SupabaseQueryBuilder get rounds => _client.from('rounds');
-  SupabaseQueryBuilder get buzzers => _client.from('buzzers');
-
   // Stream party updates
   Stream<List<Map<String, dynamic>>> streamParty(String partyId) {
     return parties.stream(primaryKey: ['id']).eq('id', partyId);

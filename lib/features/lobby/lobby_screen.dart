@@ -5,6 +5,7 @@ import 'package:songrush_party/core/theme/app_theme.dart';
 import 'package:songrush_party/features/party/party_controller.dart';
 import 'package:songrush_party/models/party.dart';
 import 'package:songrush_party/models/player.dart';
+import 'package:songrush_party/features/lobby/playlist_selector.dart';
 import 'package:songrush_party/services/spotify_service.dart';
 
 final partyStreamProvider = StreamProvider.family<Party?, String>((ref, id) {
@@ -163,7 +164,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
                     // Host-only controls
                     if (isHost) ...[
-                      _GenreSelector(partyId: widget.partyId),
+                      PlaylistSelector(partyId: widget.partyId),
                       _SpotifyConnectButton(
                         connected: spotifyConnected,
                         connecting: _connectingSpotify,
@@ -235,76 +236,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         );
       }
     }
-  }
-}
-
-// ──────────────────────────────────────────
-// Genre Selector
-// ──────────────────────────────────────────
-
-class _GenreSelector extends ConsumerWidget {
-  final String partyId;
-
-  const _GenreSelector({required this.partyId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'GENRE WÄHLEN',
-            style: TextStyle(
-              color: Colors.white70,
-              letterSpacing: 2,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 8),
-          StreamBuilder(
-            stream: ref
-                .watch(supabaseServiceProvider)
-                .streamParty(partyId),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const SizedBox();
-              }
-              final currentGenre =
-                  (snapshot.data!.first['genre'] as String?) ?? 'Pop';
-
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: kSpotifyGenres.keys.map((label) {
-                  final isSelected = currentGenre == label;
-                  return ChoiceChip(
-                    label: Text(label),
-                    selected: isSelected,
-                    selectedColor: AppTheme.neonPink,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.white70,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    backgroundColor: AppTheme.surface,
-                    onSelected: (_) async {
-                      await ref
-                          .read(supabaseServiceProvider)
-                          .parties
-                          .update({'genre': label})
-                          .eq('id', partyId);
-                    },
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ],
-      ),
-    );
   }
 }
 

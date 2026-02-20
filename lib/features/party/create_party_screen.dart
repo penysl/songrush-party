@@ -61,8 +61,12 @@ class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
               height: 56,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _createParty,
-                child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white) 
+                child: _isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
                   : const Text('LOS GEHT\'S'),
               ),
             ),

@@ -22,7 +22,7 @@ class Player {
       name: map['name'] as String,
       score: map['score'] as int? ?? 0,
       isHost: map['is_host'] as bool? ?? false,
-      joinedAt: DateTime.parse(map['created_at'] as String? ?? map['joined_at'] as String? ?? DateTime.now().toIso8601String()),
+      joinedAt: DateTime.parse(map['created_at'] as String? ?? DateTime.now().toIso8601String()),
     );
   }
 
