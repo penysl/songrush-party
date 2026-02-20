@@ -1,0 +1,688 @@
+[
+  {
+    "id": "1xsYj84j7hUDDnTTerGWlH",
+    "name": "Dream On",
+    "artistName": "Aerosmith",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273bbf0146981704a073405b6c2",
+    "spotifyUri": "spotify:track:1xsYj84j7hUDDnTTerGWlH"
+  },
+  {
+    "id": "26kXONuhWX8sutaxnmcpPg",
+    "name": "Skandal im Sperrbezirk",
+    "artistName": "Spider Murphy Gang",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2739c884c1f2cdd0988fafaa53a",
+    "spotifyUri": "spotify:track:26kXONuhWX8sutaxnmcpPg"
+  },
+  {
+    "id": "63T7DJ1AFDD6Bn8VzG6JE8",
+    "name": "Paint It, Black",
+    "artistName": "The Rolling Stones",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273bad7062c3fd2f2d037989694",
+    "spotifyUri": "spotify:track:63T7DJ1AFDD6Bn8VzG6JE8"
+  },
+  {
+    "id": "4mn2kNTqiGLwaUR8JdhJ1l",
+    "name": "House of the Rising Sun",
+    "artistName": "The Animals",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273015c484a7aca592df1a77828",
+    "spotifyUri": "spotify:track:4mn2kNTqiGLwaUR8JdhJ1l"
+  },
+  {
+    "id": "3dxiWIBVJRlqh9xk144rf4",
+    "name": "Breaking the Habit",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2738b5b6fa1326d996181e71dd7",
+    "spotifyUri": "spotify:track:3dxiWIBVJRlqh9xk144rf4"
+  },
+  {
+    "id": "6PwjJ58I4t7Mae9xfZ9l9v",
+    "name": "Somebody Told Me",
+    "artistName": "The Killers",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273ccdddd46119a4ff53eaf1f5d",
+    "spotifyUri": "spotify:track:6PwjJ58I4t7Mae9xfZ9l9v"
+  },
+  {
+    "id": "4BP3uh0hFLFRb5cjsgLqDh",
+    "name": "Fortunate Son",
+    "artistName": "Creedence Clearwater Revival",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2739f39192f9f8ca1c90847b3e5",
+    "spotifyUri": "spotify:track:4BP3uh0hFLFRb5cjsgLqDh"
+  },
+  {
+    "id": "1Vej0qeQ3ioKwpI6FUbRv1",
+    "name": "Papercut",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e2f039481babe23658fc719a",
+    "spotifyUri": "spotify:track:1Vej0qeQ3ioKwpI6FUbRv1"
+  },
+  {
+    "id": "6ADSaE87h8Y3lccZlBJdXH",
+    "name": "With Or Without You",
+    "artistName": "U2",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273b7bea3d01f04e6d0408d2afe",
+    "spotifyUri": "spotify:track:6ADSaE87h8Y3lccZlBJdXH"
+  },
+  {
+    "id": "4u7EnebtmKWzUH433cf5Qv",
+    "name": "Bohemian Rhapsody - Remastered 2011",
+    "artistName": "Queen",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e319baafd16e84f0408af2a0",
+    "spotifyUri": "spotify:track:4u7EnebtmKWzUH433cf5Qv"
+  },
+  {
+    "id": "2X485T9Z5Ly0xyaghN73ed",
+    "name": "Let It Happen",
+    "artistName": "Tame Impala",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2739e1cfc756886ac782e363d79",
+    "spotifyUri": "spotify:track:2X485T9Z5Ly0xyaghN73ed"
+  },
+  {
+    "id": "0WSa1sucoNRcEeULlZVQXj",
+    "name": "Can You Feel My Heart",
+    "artistName": "Bring Me The Horizon",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273566acaba72c5509e3887c4b0",
+    "spotifyUri": "spotify:track:0WSa1sucoNRcEeULlZVQXj"
+  },
+  {
+    "id": "40riOy7x9W7GXjyGp4pjAv",
+    "name": "Hotel California - 2013 Remaster",
+    "artistName": "Eagles",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2734637341b9f507521afa9a778",
+    "spotifyUri": "spotify:track:40riOy7x9W7GXjyGp4pjAv"
+  },
+  {
+    "id": "54eZmuggBFJbV7k248bTTt",
+    "name": "A Horse with No Name",
+    "artistName": "America, George Martin",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273ab3b105e28a0d26df5be8d16",
+    "spotifyUri": "spotify:track:54eZmuggBFJbV7k248bTTt"
+  },
+  {
+    "id": "1QEEqeFIZktqIpPI4jSVSF",
+    "name": "More Than a Feeling",
+    "artistName": "Boston",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2738c1fadcc997a65384f34d694",
+    "spotifyUri": "spotify:track:1QEEqeFIZktqIpPI4jSVSF"
+  },
+  {
+    "id": "5Hk4Mpex0s2ndUpDQ5v2rU",
+    "name": "Walk Of Life - Remastered 1996",
+    "artistName": "Dire Straits",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27358c4e9c84ece7d31f51636f3",
+    "spotifyUri": "spotify:track:5Hk4Mpex0s2ndUpDQ5v2rU"
+  },
+  {
+    "id": "5UWwZ5lm5PKu6eKsHAGxOk",
+    "name": "Everlong",
+    "artistName": "Foo Fighters",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2734bc9bcdbdc9ac34e37d8b6bb",
+    "spotifyUri": "spotify:track:5UWwZ5lm5PKu6eKsHAGxOk"
+  },
+  {
+    "id": "6vgnumRgsZcc5fVFtpIRO1",
+    "name": "Out Of The Dark",
+    "artistName": "Falco",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2731a78668fa55a9a8cdeb22a5e",
+    "spotifyUri": "spotify:track:6vgnumRgsZcc5fVFtpIRO1"
+  },
+  {
+    "id": "2zYzyRzz6pRmhPzyfMEC8s",
+    "name": "Highway to Hell",
+    "artistName": "AC/DC",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27343058ea096fa35ac33c43587",
+    "spotifyUri": "spotify:track:2zYzyRzz6pRmhPzyfMEC8s"
+  },
+  {
+    "id": "25FTMokYEbEWHEdss5JLZS",
+    "name": "Teenage Dirtbag",
+    "artistName": "Wheatus",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2730a3740efa638f10f14fabc46",
+    "spotifyUri": "spotify:track:25FTMokYEbEWHEdss5JLZS"
+  },
+  {
+    "id": "57bgtoPSgt236HzfBOd8kj",
+    "name": "Thunderstruck",
+    "artistName": "AC/DC",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2739a9b1cc067e4460da04adce2",
+    "spotifyUri": "spotify:track:57bgtoPSgt236HzfBOd8kj"
+  },
+  {
+    "id": "6QAsrXPnMSXIbV0yEJHlEX",
+    "name": "Nothing Else Matters - Remastered 2021",
+    "artistName": "Metallica",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273c1a13209dfe146aef3296e34",
+    "spotifyUri": "spotify:track:6QAsrXPnMSXIbV0yEJHlEX"
+  },
+  {
+    "id": "2KTxKoM4iUYCtuUGGIh9Qu",
+    "name": "Irgendwie, irgendwo, irgendwann",
+    "artistName": "Nena",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2732120ff3ce98436f0715b38c6",
+    "spotifyUri": "spotify:track:2KTxKoM4iUYCtuUGGIh9Qu"
+  },
+  {
+    "id": "4RvWPyQ5RL0ao9LPZeSouE",
+    "name": "Everybody Wants To Rule The World",
+    "artistName": "Tears For Fears",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27322463d6939fec9e17b2a6235",
+    "spotifyUri": "spotify:track:4RvWPyQ5RL0ao9LPZeSouE"
+  },
+  {
+    "id": "2PnlsTsOTLE5jnBnNe2K0A",
+    "name": "The Emptiness Machine",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273263d80522efd7277ab2bb822",
+    "spotifyUri": "spotify:track:2PnlsTsOTLE5jnBnNe2K0A"
+  },
+  {
+    "id": "6GQ3WTaNHMFlVmN4burGat",
+    "name": "Butterfly",
+    "artistName": "Crazy Town",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273523e6f09c8962982254de0cd",
+    "spotifyUri": "spotify:track:6GQ3WTaNHMFlVmN4burGat"
+  },
+  {
+    "id": "0ofHAoxe9vBkTCp2UQIavz",
+    "name": "Dreams - 2004 Remaster",
+    "artistName": "Fleetwood Mac",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e52a59a28efa4773dd2bfe1b",
+    "spotifyUri": "spotify:track:0ofHAoxe9vBkTCp2UQIavz"
+  },
+  {
+    "id": "7oVEtyuv9NBmnytsCIsY5I",
+    "name": "BURN IT DOWN",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273987fb4c5ec8790e9f637a4a4",
+    "spotifyUri": "spotify:track:7oVEtyuv9NBmnytsCIsY5I"
+  },
+  {
+    "id": "2fuYa3Lx06QQJAm0MjztKr",
+    "name": "Let Down",
+    "artistName": "Radiohead",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273c8b444df094279e70d0ed856",
+    "spotifyUri": "spotify:track:2fuYa3Lx06QQJAm0MjztKr"
+  },
+  {
+    "id": "6S9q9mEifNdnTNlli2xSuD",
+    "name": "I Was Made For Lovin' You",
+    "artistName": "KISS",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27364167a22238ce39af0f4994d",
+    "spotifyUri": "spotify:track:6S9q9mEifNdnTNlli2xSuD"
+  },
+  {
+    "id": "18AXbzPzBS8Y3AkgSxzJPb",
+    "name": "In The Air Tonight - 2015 Remastered",
+    "artistName": "Phil Collins",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273f6954c1f074f66907a8c5483",
+    "spotifyUri": "spotify:track:18AXbzPzBS8Y3AkgSxzJPb"
+  },
+  {
+    "id": "7j74lucZ59vqN67Ipe2ZcY",
+    "name": "Maneater",
+    "artistName": "Daryl Hall & John Oates",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273cfe4163cbb6d12f3ec15898e",
+    "spotifyUri": "spotify:track:7j74lucZ59vqN67Ipe2ZcY"
+  },
+  {
+    "id": "48UPSzbZjgc449aqz8bxox",
+    "name": "Californication",
+    "artistName": "Red Hot Chili Peppers",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27394d08ab63e57b0cae74e8595",
+    "spotifyUri": "spotify:track:48UPSzbZjgc449aqz8bxox"
+  },
+  {
+    "id": "5T8EDUDqKcs6OSOwEsfqG7",
+    "name": "Don't Stop Me Now - Remastered 2011",
+    "artistName": "Queen",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2737c39dd133836c2c1c87e34d6",
+    "spotifyUri": "spotify:track:5T8EDUDqKcs6OSOwEsfqG7"
+  },
+  {
+    "id": "57BrRMwf9LrcmuOsyGilwr",
+    "name": "Crawling",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e2f039481babe23658fc719a",
+    "spotifyUri": "spotify:track:57BrRMwf9LrcmuOsyGilwr"
+  },
+  {
+    "id": "5e9TFTbltYBg2xThimr0rU",
+    "name": "The Chain - 2004 Remaster",
+    "artistName": "Fleetwood Mac",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e52a59a28efa4773dd2bfe1b",
+    "spotifyUri": "spotify:track:5e9TFTbltYBg2xThimr0rU"
+  },
+  {
+    "id": "37Tmv4NnfQeb0ZgUC4fOJj",
+    "name": "Sultans Of Swing",
+    "artistName": "Dire Straits",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273b49d49cc95564aede7998bb8",
+    "spotifyUri": "spotify:track:37Tmv4NnfQeb0ZgUC4fOJj"
+  },
+  {
+    "id": "254bXAqt3zP6P50BdQvEsq",
+    "name": "Everywhere - 2017 Remaster",
+    "artistName": "Fleetwood Mac",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273aaba065944cd82a6f15c86b6",
+    "spotifyUri": "spotify:track:254bXAqt3zP6P50BdQvEsq"
+  },
+  {
+    "id": "50brQMN8OxkmYUb1LyOsnQ",
+    "name": "1000 und 1 Nacht (Zoom!) - Remastered 2011",
+    "artistName": "Klaus Lage",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27389f304aa1ce2e9822ba9a583",
+    "spotifyUri": "spotify:track:50brQMN8OxkmYUb1LyOsnQ"
+  },
+  {
+    "id": "6HSXNV0b4M4cLJ7ljgVVeh",
+    "name": "Knockin' On Heaven's Door",
+    "artistName": "Bob Dylan",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2736c86683d20c72e3874c11c6d",
+    "spotifyUri": "spotify:track:6HSXNV0b4M4cLJ7ljgVVeh"
+  },
+  {
+    "id": "2LawezPeJhN4AWuSB0GtAU",
+    "name": "Have You Ever Seen The Rain",
+    "artistName": "Creedence Clearwater Revival",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27351f311c2fb06ad2789e3ff91",
+    "spotifyUri": "spotify:track:2LawezPeJhN4AWuSB0GtAU"
+  },
+  {
+    "id": "1VNWaY3uNfoeWqb5U8x2QX",
+    "name": "Lonely Day",
+    "artistName": "System Of A Down",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273f5e7b2e5adaa87430a3eccff",
+    "spotifyUri": "spotify:track:1VNWaY3uNfoeWqb5U8x2QX"
+  },
+  {
+    "id": "5FVd6KXrgO9B3JPmC8OPst",
+    "name": "Do I Wanna Know?",
+    "artistName": "Arctic Monkeys",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2734ae1c4c5c45aabe565499163",
+    "spotifyUri": "spotify:track:5FVd6KXrgO9B3JPmC8OPst"
+  },
+  {
+    "id": "1G391cbiT3v3Cywg8T7DM1",
+    "name": "Scar Tissue",
+    "artistName": "Red Hot Chili Peppers",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27394d08ab63e57b0cae74e8595",
+    "spotifyUri": "spotify:track:1G391cbiT3v3Cywg8T7DM1"
+  },
+  {
+    "id": "3d9DChrdc6BOeFsbrZ3Is0",
+    "name": "Under the Bridge",
+    "artistName": "Red Hot Chili Peppers",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273153d79816d853f2694b2cc70",
+    "spotifyUri": "spotify:track:3d9DChrdc6BOeFsbrZ3Is0"
+  },
+  {
+    "id": "4aVuWgvD0X63hcOCnZtNFA",
+    "name": "Hold the Line",
+    "artistName": "TOTO",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273105ef588df1ef91bfa811f94",
+    "spotifyUri": "spotify:track:4aVuWgvD0X63hcOCnZtNFA"
+  },
+  {
+    "id": "2fuCquhmrzHpu5xcA1ci9x",
+    "name": "Under Pressure - Remastered 2011",
+    "artistName": "Queen, David Bowie",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273d254ca497999ae980a5a38c5",
+    "spotifyUri": "spotify:track:2fuCquhmrzHpu5xcA1ci9x"
+  },
+  {
+    "id": "2HBBM75Xv3o2Mqdyh1NcM0",
+    "name": "Heavy Is the Crown",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2738be9eeb8f19696ef2fd3b6b4",
+    "spotifyUri": "spotify:track:2HBBM75Xv3o2Mqdyh1NcM0"
+  },
+  {
+    "id": "2SiXAy7TuUkycRVbbWDEpo",
+    "name": "You Shook Me All Night Long",
+    "artistName": "AC/DC",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273ff191d7fbdb5a13eaf84132b",
+    "spotifyUri": "spotify:track:2SiXAy7TuUkycRVbbWDEpo"
+  },
+  {
+    "id": "1QFh8OH1e78dGd3VyJZCAC",
+    "name": "Boys Don't Cry",
+    "artistName": "The Cure",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273145f62824c79efecf474081f",
+    "spotifyUri": "spotify:track:1QFh8OH1e78dGd3VyJZCAC"
+  },
+  {
+    "id": "6K4t31amVTZDgR3sKmwUJJ",
+    "name": "The Less I Know The Better",
+    "artistName": "Tame Impala",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2739e1cfc756886ac782e363d79",
+    "spotifyUri": "spotify:track:6K4t31amVTZDgR3sKmwUJJ"
+  },
+  {
+    "id": "2MuWTIM3b0YEAskbeeFE1i",
+    "name": "Master Of Puppets",
+    "artistName": "Metallica",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273668e3aca3167e6e569a9aa20",
+    "spotifyUri": "spotify:track:2MuWTIM3b0YEAskbeeFE1i"
+  },
+  {
+    "id": "5vdp5UmvTsnMEMESIF2Ym7",
+    "name": "Another One Bites The Dust - Remastered 2011",
+    "artistName": "Queen",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273056e90910cbaf5c5b892aeba",
+    "spotifyUri": "spotify:track:5vdp5UmvTsnMEMESIF2Ym7"
+  },
+  {
+    "id": "0Dmao2oWlAZzIBX2Q1B5AH",
+    "name": "Bitter Sweet Symphony - Remastered 2016",
+    "artistName": "The Verve",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273c86113bf1fcdda0cef043139",
+    "spotifyUri": "spotify:track:0Dmao2oWlAZzIBX2Q1B5AH"
+  },
+  {
+    "id": "5fVZC9GiM4e8vu99W0Xf6J",
+    "name": "How to Save a Life",
+    "artistName": "The Fray",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27359b8b957f164ce660919f1f4",
+    "spotifyUri": "spotify:track:5fVZC9GiM4e8vu99W0Xf6J"
+  },
+  {
+    "id": "5XQNN3cHwYRzPv08CHuQNZ",
+    "name": "Monster",
+    "artistName": "Skillet",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273597fa04b299394cdb6b5eab1",
+    "spotifyUri": "spotify:track:5XQNN3cHwYRzPv08CHuQNZ"
+  },
+  {
+    "id": "2DlHlPMa4M17kufBvI2lEN",
+    "name": "Chop Suey!",
+    "artistName": "System Of A Down",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27307bc7d2a745636c356b4d0aa",
+    "spotifyUri": "spotify:track:2DlHlPMa4M17kufBvI2lEN"
+  },
+  {
+    "id": "3dPQuX8Gs42Y7b454ybpMR",
+    "name": "Seven Nation Army",
+    "artistName": "The White Stripes",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2737028981d09d2e5833c9c78ad",
+    "spotifyUri": "spotify:track:3dPQuX8Gs42Y7b454ybpMR"
+  },
+  {
+    "id": "7snQQk1zcKl8gZ92AnueZW",
+    "name": "Sweet Child O' Mine",
+    "artistName": "Guns N' Roses",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27321ebf49b3292c3f0f575f0f5",
+    "spotifyUri": "spotify:track:7snQQk1zcKl8gZ92AnueZW"
+  },
+  {
+    "id": "0snQkGI5qnAmohLE7jTsTn",
+    "name": "Toxicity",
+    "artistName": "System Of A Down",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27307bc7d2a745636c356b4d0aa",
+    "spotifyUri": "spotify:track:0snQkGI5qnAmohLE7jTsTn"
+  },
+  {
+    "id": "2aibwv5hGXSgw7Yru8IYTO",
+    "name": "Snow (Hey Oh)",
+    "artistName": "Red Hot Chili Peppers",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27309fd83d32aee93dceba78517",
+    "spotifyUri": "spotify:track:2aibwv5hGXSgw7Yru8IYTO"
+  },
+  {
+    "id": "2WfaOiMkCvy7F5fcp2zZ8L",
+    "name": "Take on Me",
+    "artistName": "a-ha",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e8dd4db47e7177c63b0b7d53",
+    "spotifyUri": "spotify:track:2WfaOiMkCvy7F5fcp2zZ8L"
+  },
+  {
+    "id": "18lR4BzEs7e3qzc0KVkTpU",
+    "name": "What I've Done",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2736e996745f2c7b8036abef213",
+    "spotifyUri": "spotify:track:18lR4BzEs7e3qzc0KVkTpU"
+  },
+  {
+    "id": "7JM1dFLOa1kI5MqGnDufiY",
+    "name": "Ohne Dich (schlaf' ich heut Nacht nicht ein)",
+    "artistName": "Münchener Freiheit",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273bd2851c86603f3036f506443",
+    "spotifyUri": "spotify:track:7JM1dFLOa1kI5MqGnDufiY"
+  },
+  {
+    "id": "3DwQ7AH3xGD9h65ezslm6q",
+    "name": "Enter Sandman - Remastered 2021",
+    "artistName": "Metallica",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273c1a13209dfe146aef3296e34",
+    "spotifyUri": "spotify:track:3DwQ7AH3xGD9h65ezslm6q"
+  },
+  {
+    "id": "4Yf5bqU3NK4kNOypcrLYwU",
+    "name": "Faint",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2735f1f51d14e8bea89484ecd1b",
+    "spotifyUri": "spotify:track:4Yf5bqU3NK4kNOypcrLYwU"
+  },
+  {
+    "id": "3ZOEytgrvLwQaqXreDs2Jx",
+    "name": "Can't Stop",
+    "artistName": "Red Hot Chili Peppers",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273de1af2785a83cc660155a0c4",
+    "spotifyUri": "spotify:track:3ZOEytgrvLwQaqXreDs2Jx"
+  },
+  {
+    "id": "1EDPVGbyPKJPeGqATwXZvN",
+    "name": "The Emptiness Machine",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2738be9eeb8f19696ef2fd3b6b4",
+    "spotifyUri": "spotify:track:1EDPVGbyPKJPeGqATwXZvN"
+  },
+  {
+    "id": "08mG3Y1vljYA6bvDt4Wqkj",
+    "name": "Back In Black",
+    "artistName": "AC/DC",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273ff191d7fbdb5a13eaf84132b",
+    "spotifyUri": "spotify:track:08mG3Y1vljYA6bvDt4Wqkj"
+  },
+  {
+    "id": "0v1XpBHnsbkCn7iJ9Ucr1l",
+    "name": "It's My Life",
+    "artistName": "Bon Jovi",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2737a231174875d7930de9dad58",
+    "spotifyUri": "spotify:track:0v1XpBHnsbkCn7iJ9Ucr1l"
+  },
+  {
+    "id": "5hM5arv9KDbCHS0k9uqwjr",
+    "name": "Borderline",
+    "artistName": "Tame Impala",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27358267bd34420a00d5cf83a49",
+    "spotifyUri": "spotify:track:5hM5arv9KDbCHS0k9uqwjr"
+  },
+  {
+    "id": "3Jnxngdff0lVu2rza1GVx6",
+    "name": "Paranoid - 2009 Remaster",
+    "artistName": "Black Sabbath",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273605b25c031f809d78054a13c",
+    "spotifyUri": "spotify:track:3Jnxngdff0lVu2rza1GVx6"
+  },
+  {
+    "id": "0M955bMOoilikPXwKLYpoi",
+    "name": "I Hate Everything About You",
+    "artistName": "Three Days Grace",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2735d4bd2c345c95e847b586403",
+    "spotifyUri": "spotify:track:0M955bMOoilikPXwKLYpoi"
+  },
+  {
+    "id": "1SKPmfSYaPsETbRHaiA18G",
+    "name": "Somewhere Only We Know",
+    "artistName": "Keane",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2737d6cd95a046a3c0dacbc7d33",
+    "spotifyUri": "spotify:track:1SKPmfSYaPsETbRHaiA18G"
+  },
+  {
+    "id": "5eFxwmqKrHpSQDOEIFYlgY",
+    "name": "Animal I Have Become",
+    "artistName": "Three Days Grace",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273fa4c18fdbd1bf1a39b7b794f",
+    "spotifyUri": "spotify:track:5eFxwmqKrHpSQDOEIFYlgY"
+  },
+  {
+    "id": "1r1fPuhj9H4VdXr7OK6FL5",
+    "name": "CASTLE OF GLASS",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273987fb4c5ec8790e9f637a4a4",
+    "spotifyUri": "spotify:track:1r1fPuhj9H4VdXr7OK6FL5"
+  },
+  {
+    "id": "64BbK9SFKH2jk86U3dGj2P",
+    "name": "Otherside",
+    "artistName": "Red Hot Chili Peppers",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27394d08ab63e57b0cae74e8595",
+    "spotifyUri": "spotify:track:64BbK9SFKH2jk86U3dGj2P"
+  },
+  {
+    "id": "3K4HG9evC7dg3N0R9cYqk4",
+    "name": "One Step Closer",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e2f039481babe23658fc719a",
+    "spotifyUri": "spotify:track:3K4HG9evC7dg3N0R9cYqk4"
+  },
+  {
+    "id": "10nyNJ6zNy2YVYLrcwLccB",
+    "name": "No Surprises",
+    "artistName": "Radiohead",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273c8b444df094279e70d0ed856",
+    "spotifyUri": "spotify:track:10nyNJ6zNy2YVYLrcwLccB"
+  },
+  {
+    "id": "2KrN3MCNztKcSleZgHEj83",
+    "name": "Little Lion Man",
+    "artistName": "Mumford & Sons",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2732b457397404b3890a6dc2e51",
+    "spotifyUri": "spotify:track:2KrN3MCNztKcSleZgHEj83"
+  },
+  {
+    "id": "030dULvYNT5n8vYpIak51w",
+    "name": "Dein ist mein ganzes Herz",
+    "artistName": "Heinz Rudolf Kunze",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273a453c233ac47457247868964",
+    "spotifyUri": "spotify:track:030dULvYNT5n8vYpIak51w"
+  },
+  {
+    "id": "0WQiDwKJclirSYG9v5tayI",
+    "name": "There Is a Light That Never Goes Out - 2011 Remaster",
+    "artistName": "The Smiths",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273ada101c2e9e97feb8fae37a9",
+    "spotifyUri": "spotify:track:0WQiDwKJclirSYG9v5tayI"
+  },
+  {
+    "id": "2RZWdE8kYPlCAcRUYDeuLC",
+    "name": "Red Flag",
+    "artistName": "Billy Talent",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27351ad1636a7d0456ad972a71c",
+    "spotifyUri": "spotify:track:2RZWdE8kYPlCAcRUYDeuLC"
+  },
+  {
+    "id": "0M3adYbGtyRHACP86dey1H",
+    "name": "Throne",
+    "artistName": "Bring Me The Horizon",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27390b88187a9831d91f2438927",
+    "spotifyUri": "spotify:track:0M3adYbGtyRHACP86dey1H"
+  },
+  {
+    "id": "07GvNcU1WdyZJq3XxP0kZa",
+    "name": "Go Your Own Way - 2004 Remaster",
+    "artistName": "Fleetwood Mac",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27357df7ce0eac715cf70e519a7",
+    "spotifyUri": "spotify:track:07GvNcU1WdyZJq3XxP0kZa"
+  },
+  {
+    "id": "0COqiPhxzoWICwFCS4eZcp",
+    "name": "Bring Me To Life",
+    "artistName": "Evanescence",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b27325f49ab23f0ec6332efef432",
+    "spotifyUri": "spotify:track:0COqiPhxzoWICwFCS4eZcp"
+  },
+  {
+    "id": "70LcF31zb1H0PyJoS1Sx1r",
+    "name": "Creep",
+    "artistName": "Radiohead",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273ec548c00d3ac2f10be73366d",
+    "spotifyUri": "spotify:track:70LcF31zb1H0PyJoS1Sx1r"
+  },
+  {
+    "id": "4CeeEOM32jQcH3eN9Q2dGj",
+    "name": "Smells Like Teen Spirit",
+    "artistName": "Nirvana",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273fbc71c99f9c1296c56dd51b6",
+    "spotifyUri": "spotify:track:4CeeEOM32jQcH3eN9Q2dGj"
+  },
+  {
+    "id": "3fjmSxt0PskST13CSdBUFx",
+    "name": "Somewhere I Belong",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2738b5b6fa1326d996181e71dd7",
+    "spotifyUri": "spotify:track:3fjmSxt0PskST13CSdBUFx"
+  },
+  {
+    "id": "7ygpwy2qP3NbrxVkHvUhXY",
+    "name": "Wonderwall - Remastered",
+    "artistName": "Oasis",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2737a4c8c59851c88f6794c3cbf",
+    "spotifyUri": "spotify:track:7ygpwy2qP3NbrxVkHvUhXY"
+  },
+  {
+    "id": "1FTSo4v6BOZH9QxKc3MbVM",
+    "name": "Song 2 - 2012 Remaster",
+    "artistName": "Blur",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273de114203356c1f7b136960b6",
+    "spotifyUri": "spotify:track:1FTSo4v6BOZH9QxKc3MbVM"
+  },
+  {
+    "id": "2374M0fQpWi3dLnB54qaLX",
+    "name": "Africa",
+    "artistName": "TOTO",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273ebd6d20c0082524244ef83df",
+    "spotifyUri": "spotify:track:2374M0fQpWi3dLnB54qaLX"
+  },
+  {
+    "id": "2nLtzopw4rPReszdYBJU6h",
+    "name": "Numb",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2735f1f51d14e8bea89484ecd1b",
+    "spotifyUri": "spotify:track:2nLtzopw4rPReszdYBJU6h"
+  },
+  {
+    "id": "2RsAajgo0g7bMCHxwH3Sk0",
+    "name": "Come As You Are",
+    "artistName": "Nirvana",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273fbc71c99f9c1296c56dd51b6",
+    "spotifyUri": "spotify:track:2RsAajgo0g7bMCHxwH3Sk0"
+  },
+  {
+    "id": "31AOj9sFz2gM0O3hMARRBx",
+    "name": "Losing My Religion",
+    "artistName": "R.E.M.",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e2dd4e821bcc3f70dc0c8ffd",
+    "spotifyUri": "spotify:track:31AOj9sFz2gM0O3hMARRBx"
+  },
+  {
+    "id": "0UFDKFqW2oGspYeYqo9wjA",
+    "name": "Bleed It Out",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b2736e996745f2c7b8036abef213",
+    "spotifyUri": "spotify:track:0UFDKFqW2oGspYeYqo9wjA"
+  },
+  {
+    "id": "60a0Rd6pjrkxjPbaKzXjfq",
+    "name": "In the End",
+    "artistName": "Linkin Park",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273e2f039481babe23658fc719a",
+    "spotifyUri": "spotify:track:60a0Rd6pjrkxjPbaKzXjfq"
+  },
+  {
+    "id": "6Qyc6fS4DsZjB2mRW9DsQs",
+    "name": "Iris",
+    "artistName": "The Goo Goo Dolls",
+    "albumCoverUrl": "https://i.scdn.co/image/ab67616d0000b273eda9478c39a21e1cdc6609ca",
+    "spotifyUri": "spotify:track:6Qyc6fS4DsZjB2mRW9DsQs"
+  }
+]

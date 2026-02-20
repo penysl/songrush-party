@@ -108,6 +108,7 @@ class _MenuButton extends StatelessWidget {
           elevation: 10,
           shadowColor: color.withValues(alpha: 0.6),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
         onPressed: onPressed,
         child: Text(

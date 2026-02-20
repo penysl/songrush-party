@@ -461,6 +461,7 @@ class _ImportTab extends StatelessWidget {
                 label: const Text('Playlist speichern'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.neonPink,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
               ),
             ),

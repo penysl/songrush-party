@@ -39,11 +39,18 @@ class FuzzyMatch {
 
   /// Normalizes a string for comparison:
   /// - lowercase
-  /// - remove special characters (keep letters, digits, spaces)
+  /// - strip parenthetical content: (feat. ...), (Radio Edit), [Remastered], etc.
+  /// - strip bare feat./ft./with suffixes
+  /// - remove remaining special characters (keep letters, digits, spaces)
   /// - trim and collapse whitespace
   static String _normalize(String input) {
     return input
         .toLowerCase()
+        // Remove anything in brackets/parens: (feat. X), [Radio Edit], {Deluxe}
+        .replaceAll(RegExp(r'\s*[\(\[\{][^\)\]\}]*[\)\]\}]'), '')
+        // Remove bare "feat. X", "ft. X", "with X" at end of string
+        .replaceAll(RegExp(r'\s+(feat\.|ft\.|with)\s+\S.*$'), '')
+        // Remove special characters (keep letters, digits, spaces, umlauts)
         .replaceAll(RegExp(r'[^a-z0-9äöüß\s]'), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
@@ -65,8 +72,8 @@ class FuzzyMatch {
   }
 
   /// Returns true if the input is a fuzzy match for the target.
-  /// Default threshold is 80% (as per PRD).
-  static bool isMatch(String input, String target, {double threshold = 0.8}) {
+  /// Threshold 0.75 allows ~2 typos on a 10-char title, ~3 on a 15-char title.
+  static bool isMatch(String input, String target, {double threshold = 0.75}) {
     return similarity(input, target) >= threshold;
   }
 }

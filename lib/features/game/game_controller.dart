@@ -66,6 +66,8 @@ class GameController {
     // 3. Get a random Spotify track
     final Map<String, dynamic> track;
     if (playlistId != null && playlistId.isNotEmpty) {
+      // Clear pool at the start of a new game (no used tracks yet)
+      if (usedTrackIds.isEmpty) _spotify.clearPlaylistCache(playlistId);
       track = await _spotify.getRandomUnusedTrackFromPlaylist(playlistId, usedTrackIds);
     } else {
       track = await _spotify.getRandomTrackForGenre(genre);

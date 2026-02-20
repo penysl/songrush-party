@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -20,44 +21,59 @@ const Map<String, String> kSpotifyGenres = {
   '2000er': 'year:2000-2009',
 };
 
+/// Genre key → bundled JSON asset path
+const Map<String, String> _kGenreAssets = {
+  'Pop': 'assets/playlists/pop.json',
+  'Rock': 'assets/playlists/rock.json',
+  'Hip-Hop': 'assets/playlists/hip_hop.json',
+  'Dance': 'assets/playlists/dance.json',
+  'R&B': 'assets/playlists/rnb.json',
+  '80er': 'assets/playlists/80er.json',
+  '90er': 'assets/playlists/90er.json',
+  '2000er': 'assets/playlists/2000er.json',
+};
+
 class SpotifyService {
   final String _clientId = dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
   final String _clientSecret = dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
   final String _redirectUri = dotenv.env['SPOTIFY_REDIRECT_URI'] ?? '';
 
   String? _accessToken;
+  DateTime? _tokenExpiry;
+
+  // Cache: playlistId → total track count
+  final Map<String, int> _trackCountCache = {};
+
+  // Pool: playlistId → shuffled list of pre-fetched tracks (50 at a time)
+  final Map<String, List<Map<String, dynamic>>> _trackPool = {};
+
+  // Genre pool: genreKey → shuffled tracks loaded from local JSON asset
+  final Map<String, List<Map<String, dynamic>>> _genrePool = {};
 
   bool get isAuthenticated => _accessToken != null;
 
+  Never _throw429(http.Response response) {
+    final retryAfter = response.headers['retry-after'];
+    final seconds = int.tryParse(retryAfter ?? '') ?? 60;
+    throw Exception('Zu viele Anfragen – bitte $seconds Sekunden warten.');
+  }
+
   // ──────────────────────────────────────────
-  // SPOTIFY APP CONNECTION (spotify_sdk)
+  // SPOTIFY APP REMOTE CONNECTION
   // ──────────────────────────────────────────
 
-  /// Connect to the Spotify app via Remote SDK.
-  /// Step 1: Get an OAuth token via browser (visible to user).
-  /// Step 2: Use that token to connect to the Spotify Remote SDK.
   Future<bool> connectToSpotify() async {
     try {
-      // Step 1: OAuth via browser – user sees and approves the login
-      final token = await SpotifySdk.getAccessToken(
+      debugPrint('Spotify connecting remote...');
+      // OAuth-Flow zuerst – öffnet Spotify-Login falls noch nicht autorisiert
+      await SpotifySdk.getAccessToken(
         clientId: _clientId,
         redirectUrl: _redirectUri,
-        scope: 'app-remote-control streaming',
-      ).timeout(
-        const Duration(seconds: 120),
-        onTimeout: () {
-          debugPrint('Spotify auth token timeout');
-          throw Exception('Auth timeout');
-        },
+        scope: 'app-remote-control,streaming,user-read-playback-state',
       );
-
-      debugPrint('Spotify token obtained, connecting remote...');
-
-      // Step 2: Connect Remote SDK with the token (skips internal auth)
       return await SpotifySdk.connectToSpotifyRemote(
         clientId: _clientId,
         redirectUrl: _redirectUri,
-        accessToken: token,
       ).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
@@ -71,28 +87,29 @@ class SpotifyService {
     }
   }
 
-  /// Play a track by its Spotify URI (e.g. "spotify:track:abc123").
   Future<void> playTrack(String spotifyUri) async {
     await SpotifySdk.play(spotifyUri: spotifyUri);
   }
 
-  /// Pause the currently playing track.
   Future<void> pausePlayback() async {
     await SpotifySdk.pause();
   }
 
-  /// Resume playback.
   Future<void> resumePlayback() async {
     await SpotifySdk.resume();
   }
 
   // ──────────────────────────────────────────
-  // SPOTIFY WEB API (HTTP / Client Credentials)
+  // AUTH (with expiry caching)
   // ──────────────────────────────────────────
 
-  /// Authenticate via Client Credentials for search-only access.
+  /// Re-uses the cached token as long as it has more than 60 seconds left.
   Future<void> _ensureToken() async {
-    if (_accessToken != null) return;
+    if (_accessToken != null &&
+        _tokenExpiry != null &&
+        _tokenExpiry!.isAfter(DateTime.now().add(const Duration(seconds: 60)))) {
+      return;
+    }
     await _authenticateWithClientCredentials();
   }
 
@@ -108,15 +125,60 @@ class SpotifyService {
     );
 
     if (response.statusCode == 200) {
-      _accessToken = jsonDecode(response.body)['access_token'] as String;
+      final body = jsonDecode(response.body);
+      _accessToken = body['access_token'] as String;
+      final expiresIn = (body['expires_in'] as num?)?.toInt() ?? 3600;
+      _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn));
     } else {
       throw Exception('Spotify auth failed: ${response.body}');
     }
   }
 
-  /// Return a random track for the given genre key (one of [kSpotifyGenres]).
-  /// Returns a map with: id, name, artistName, albumCoverUrl, spotifyUri.
+  // ──────────────────────────────────────────
+  // GENRE SEARCH
+  // ──────────────────────────────────────────
+
+  /// Returns a random track for the genre.
+  /// Loads from the bundled JSON asset (0 API calls).
+  /// Falls back to Spotify Search API only if the asset is empty/missing.
   Future<Map<String, dynamic>> getRandomTrackForGenre(String genreKey) async {
+    // Lazily load + shuffle asset on first call per genre
+    if (!_genrePool.containsKey(genreKey)) {
+      await _loadGenrePool(genreKey);
+    }
+
+    final pool = _genrePool[genreKey]!;
+    if (pool.isNotEmpty) {
+      // Reshuffle when exhausted so play never stops
+      if (pool.length == 1) {
+        await _loadGenrePool(genreKey);
+      }
+      return pool.removeAt(0);
+    }
+
+    // Asset empty → fall back to API
+    return _fetchRandomTrackFromApi(genreKey);
+  }
+
+  /// Loads the local JSON asset for [genreKey] into [_genrePool] (shuffled).
+  Future<void> _loadGenrePool(String genreKey) async {
+    final assetPath = _kGenreAssets[genreKey];
+    if (assetPath == null) {
+      _genrePool[genreKey] = [];
+      return;
+    }
+    try {
+      final raw = await rootBundle.loadString(assetPath);
+      final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+      list.shuffle();
+      _genrePool[genreKey] = list;
+    } catch (_) {
+      _genrePool[genreKey] = [];
+    }
+  }
+
+  /// Spotify Search API fallback — used only when the local JSON is empty.
+  Future<Map<String, dynamic>> _fetchRandomTrackFromApi(String genreKey) async {
     await _ensureToken();
 
     final query = kSpotifyGenres[genreKey] ?? 'genre:pop';
@@ -137,12 +199,12 @@ class SpotifyService {
     );
 
     if (response.statusCode == 401) {
-      // Token expired – retry once
       _accessToken = null;
+      _tokenExpiry = null;
       await _ensureToken();
-      return getRandomTrackForGenre(genreKey);
+      return _fetchRandomTrackFromApi(genreKey);
     }
-
+    if (response.statusCode == 429) _throw429(response);
     if (response.statusCode != 200) {
       throw Exception('Track search failed: ${response.body}');
     }
@@ -153,21 +215,7 @@ class SpotifyService {
       throw Exception('Keine Tracks für Genre "$genreKey" gefunden.');
     }
 
-    final track = items.first as Map<String, dynamic>;
-    final artists = (track['artists'] as List)
-        .map((a) => a['name'] as String)
-        .join(', ');
-    final images = track['album']['images'] as List;
-    final coverUrl =
-        images.isNotEmpty ? images.first['url'] as String : null;
-
-    return {
-      'id': track['id'] as String,
-      'name': track['name'] as String,
-      'artistName': artists,
-      'albumCoverUrl': coverUrl,
-      'spotifyUri': 'spotify:track:${track['id']}',
-    };
+    return _parseTrack(items.first as Map<String, dynamic>);
   }
 
   // ──────────────────────────────────────────
@@ -175,135 +223,187 @@ class SpotifyService {
   // ──────────────────────────────────────────
 
   /// Extracts the Spotify playlist ID from a URL, URI or plain ID.
-  /// Accepts:
-  ///   https://open.spotify.com/playlist/ABC123?si=...
-  ///   spotify:playlist:ABC123
-  ///   ABC123
   static String? extractPlaylistId(String input) {
     final trimmed = input.trim();
-    // URL
-    final urlMatch = RegExp(r'spotify\.com/playlist/([A-Za-z0-9]+)').firstMatch(trimmed);
+    final urlMatch =
+        RegExp(r'spotify\.com/playlist/([A-Za-z0-9]+)').firstMatch(trimmed);
     if (urlMatch != null) return urlMatch.group(1);
-    // URI
-    final uriMatch = RegExp(r'spotify:playlist:([A-Za-z0-9]+)').firstMatch(trimmed);
+    final uriMatch =
+        RegExp(r'spotify:playlist:([A-Za-z0-9]+)').firstMatch(trimmed);
     if (uriMatch != null) return uriMatch.group(1);
-    // Plain ID (22 chars, alphanumeric)
     if (RegExp(r'^[A-Za-z0-9]{22}$').hasMatch(trimmed)) return trimmed;
     return null;
   }
 
   /// Returns the playlist name and total track count.
+  /// One API call using `fields` — track count is read directly from the response
+  /// and cached for the session.
   Future<Map<String, dynamic>> getPlaylistInfo(String playlistId) async {
     await _ensureToken();
-    final headers = {'Authorization': 'Bearer $_accessToken'};
 
-    // Name from playlist endpoint, total from /items endpoint (more reliable)
-    final nameResponse = await http.get(
-      Uri.parse('https://api.spotify.com/v1/playlists/$playlistId'),
-      headers: headers,
+    final response = await http.get(
+      Uri.parse(
+        'https://api.spotify.com/v1/playlists/$playlistId'
+        '?fields=name,tracks.total',
+      ),
+      headers: {'Authorization': 'Bearer $_accessToken'},
     );
-    if (nameResponse.statusCode == 401) {
+
+    if (response.statusCode == 401) {
       _accessToken = null;
+      _tokenExpiry = null;
       await _ensureToken();
       return getPlaylistInfo(playlistId);
     }
-    if (nameResponse.statusCode == 429) {
-      throw Exception('Zu viele Anfragen – bitte 1 Minute warten und erneut versuchen.');
-    }
-    if (nameResponse.statusCode == 403) {
+    if (response.statusCode == 429) _throw429(response);
+    if (response.statusCode == 403) {
       throw Exception('Zugriff verweigert (403). Ist die Playlist öffentlich?');
     }
-    if (nameResponse.statusCode != 200) {
-      throw Exception('Fehler ${nameResponse.statusCode}: Playlist nicht gefunden.');
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Fehler ${response.statusCode}: Playlist nicht gefunden.');
     }
-    final playlistData = jsonDecode(nameResponse.body) as Map<String, dynamic>;
-    final trackCount = await getPlaylistTrackCount(playlistId);
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final trackCount = (data['tracks']['total'] as num).toInt();
+    _trackCountCache[playlistId] = trackCount;
+
     return {
-      'name': playlistData['name'] as String,
+      'name': data['name'] as String,
       'trackCount': trackCount,
     };
   }
 
-  /// Returns the total number of tracks in a playlist via the /items endpoint.
-  Future<int> getPlaylistTrackCount(String playlistId) async {
-    await _ensureToken();
-    final uri = Uri.parse(
-      'https://api.spotify.com/v1/playlists/$playlistId/items?limit=1',
+  /// Fetches only the total track count (used when not already cached).
+  Future<int> _fetchTrackCount(String playlistId) async {
+    final response = await http.get(
+      Uri.parse(
+          'https://api.spotify.com/v1/playlists/$playlistId?fields=tracks.total'),
+      headers: {'Authorization': 'Bearer $_accessToken'},
     );
-    final response = await http.get(uri, headers: {'Authorization': 'Bearer $_accessToken'});
     if (response.statusCode == 401) {
       _accessToken = null;
+      _tokenExpiry = null;
       await _ensureToken();
-      return getPlaylistTrackCount(playlistId);
+      return _fetchTrackCount(playlistId);
     }
-    if (response.statusCode == 429) {
-      throw Exception('Zu viele Anfragen – bitte 1 Minute warten.');
-    }
+    if (response.statusCode == 429) _throw429(response);
     if (response.statusCode != 200) {
       throw Exception('Track count failed (${response.statusCode})');
     }
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final total = data['total'];
-    if (total is num) return total.toInt();
-    return 0;
+    final count =
+        (jsonDecode(response.body)['tracks']['total'] as num).toInt();
+    _trackCountCache[playlistId] = count;
+    return count;
   }
 
-  /// Returns track data at the given offset (0-based) from the playlist.
-  Future<Map<String, dynamic>> getTrackFromPlaylist(String playlistId, int offset) async {
+  /// Fetches up to 50 tracks in a single API call and adds them (shuffled) to
+  /// the in-memory pool for this playlist.
+  Future<void> _refillPool(String playlistId) async {
     await _ensureToken();
-    // Use /items endpoint (newer, replaces /tracks)
-    // Build URL as string to avoid Uri encoding parentheses in the fields param
-    final uri = Uri.parse(
-      'https://api.spotify.com/v1/playlists/$playlistId/items'
-      '?limit=1&offset=$offset'
-      '&fields=items(track(id,name,artists(name),album(images)))',
+
+    final total =
+        _trackCountCache[playlistId] ?? await _fetchTrackCount(playlistId);
+    if (total == 0) return;
+
+    const batchSize = 50;
+    final offset = Random().nextInt(max(1, total - batchSize));
+    final limit = batchSize.clamp(1, total - offset);
+
+    final response = await http.get(
+      Uri.parse(
+        'https://api.spotify.com/v1/playlists/$playlistId/items'
+        '?limit=$limit&offset=$offset'
+        '&fields=items(track(id,name,artists(name),album(images),is_local))',
+      ),
+      headers: {'Authorization': 'Bearer $_accessToken'},
     );
-    final response = await http.get(uri, headers: {'Authorization': 'Bearer $_accessToken'});
+
     if (response.statusCode == 401) {
       _accessToken = null;
+      _tokenExpiry = null;
       await _ensureToken();
-      return getTrackFromPlaylist(playlistId, offset);
+      await _refillPool(playlistId);
+      return;
     }
+    if (response.statusCode == 429) _throw429(response);
     if (response.statusCode != 200) {
-      throw Exception('Playlist track fetch failed: ${response.body}');
+      throw Exception('Track pool fetch failed: ${response.body}');
     }
-    final data = jsonDecode(response.body);
-    final items = data['items'] as List;
-    if (items.isEmpty || items.first['track'] == null) {
-      throw Exception('Kein Track an Position $offset gefunden.');
+
+    final items = jsonDecode(response.body)['items'] as List;
+    final tracks = <Map<String, dynamic>>[];
+    for (final item in items) {
+      final track = item['track'];
+      if (track == null || track['is_local'] == true) continue;
+      tracks.add(_parseTrack(track as Map<String, dynamic>));
     }
-    final track = items.first['track'] as Map<String, dynamic>;
-    final artists = (track['artists'] as List).map((a) => a['name'] as String).join(', ');
+
+    tracks.shuffle();
+    _trackPool[playlistId] = [...?_trackPool[playlistId], ...tracks];
+  }
+
+  /// Returns a random unused track from the playlist.
+  ///
+  /// Uses an in-memory pool — only makes an API call (50 tracks at once) when
+  /// the pool is empty, instead of one call per track.
+  Future<Map<String, dynamic>> getRandomUnusedTrackFromPlaylist(
+    String playlistId,
+    List<String> usedTrackIds, {
+    int maxAttempts = 3,
+  }) async {
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+      if ((_trackPool[playlistId] ?? []).isEmpty) {
+        await _refillPool(playlistId);
+      }
+
+      final pool = _trackPool[playlistId] ?? [];
+      if (pool.isEmpty) throw Exception('Playlist ist leer.');
+
+      final idx =
+          pool.indexWhere((t) => !usedTrackIds.contains(t['id'] as String));
+
+      if (idx != -1) {
+        final track = pool.removeAt(idx);
+        _trackPool[playlistId] = pool;
+        return track;
+      }
+
+      // All tracks in current pool were already used — discard and refill
+      _trackPool[playlistId] = [];
+    }
+
+    throw Exception('Keine neuen Tracks verfügbar.');
+  }
+
+  /// Call this when starting a new game to reset the track pool and cached
+  /// track count for a playlist, so stale data from a previous session can't
+  /// cause out-of-bounds offsets (e.g. if tracks were removed from the playlist).
+  void clearPlaylistCache(String playlistId) {
+    _trackPool.remove(playlistId);
+    _trackCountCache.remove(playlistId);
+  }
+
+  /// Clears all caches (e.g. when switching playlists).
+  void clearAllCaches() {
+    _trackPool.clear();
+    _trackCountCache.clear();
+  }
+
+  // ──────────────────────────────────────────
+  // HELPERS
+  // ──────────────────────────────────────────
+
+  Map<String, dynamic> _parseTrack(Map<String, dynamic> track) {
+    final artists =
+        (track['artists'] as List).map((a) => a['name'] as String).join(', ');
     final images = track['album']['images'] as List;
-    final coverUrl = images.isNotEmpty ? images.first['url'] as String : null;
     return {
       'id': track['id'] as String,
       'name': track['name'] as String,
       'artistName': artists,
-      'albumCoverUrl': coverUrl,
+      'albumCoverUrl': images.isNotEmpty ? images.first['url'] as String : null,
       'spotifyUri': 'spotify:track:${track['id']}',
     };
   }
-
-  /// Picks a random track from the playlist that isn't in [usedTrackIds].
-  /// Tries up to [maxAttempts] times before giving up.
-  Future<Map<String, dynamic>> getRandomUnusedTrackFromPlaylist(
-    String playlistId,
-    List<String> usedTrackIds, {
-    int maxAttempts = 5,
-  }) async {
-    final total = await getPlaylistTrackCount(playlistId);
-    if (total == 0) throw Exception('Playlist ist leer.');
-    final rng = Random();
-    for (int i = 0; i < maxAttempts; i++) {
-      final offset = rng.nextInt(total);
-      final track = await getTrackFromPlaylist(playlistId, offset);
-      if (!usedTrackIds.contains(track['id'] as String)) {
-        return track;
-      }
-    }
-    // All attempts hit duplicates – just return the last one anyway
-    return getTrackFromPlaylist(playlistId, rng.nextInt(total));
-  }
-
 }

@@ -164,12 +164,24 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
                     // Host-only controls
                     if (isHost) ...[
-                      PlaylistSelector(partyId: widget.partyId),
                       _SpotifyConnectButton(
                         connected: spotifyConnected,
                         connecting: _connectingSpotify,
                         onConnect: () => _connectSpotify(),
                       ),
+                      if (spotifyConnected)
+                        PlaylistSelector(partyId: widget.partyId)
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 8),
+                          child: Text(
+                            'Verbinde Spotify, um eine Playlist auszuwählen',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                color: Colors.white38, fontSize: 13),
+                          ),
+                        ),
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(24, 8, 24, 24),
