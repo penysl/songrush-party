@@ -20,14 +20,15 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.songrush.songrush_party"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23 // spotify_sdk requires minSdk 23
+        minSdk = flutter.minSdkVersion // spotify_sdk requires minSdk 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Spotify OAuth redirect URI placeholders — must match SPOTIFY_REDIRECT_URI in .env
+        // e.g. songrush://callback → scheme="songrush", host="callback"
+        manifestPlaceholders["redirectSchemeName"] = "songrush"
+        manifestPlaceholders["redirectHostName"] = "callback"
     }
 
     buildTypes {
