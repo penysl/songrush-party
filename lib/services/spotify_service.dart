@@ -33,13 +33,37 @@ class SpotifyService {
   // SPOTIFY APP CONNECTION (spotify_sdk)
   // ──────────────────────────────────────────
 
-  /// Connect to the Spotify app via Remote SDK (OAuth happens inside the SDK).
-  /// The host must have Spotify Premium and the Spotify app installed.
+  /// Connect to the Spotify app via Remote SDK.
+  /// Step 1: Get an OAuth token via browser (visible to user).
+  /// Step 2: Use that token to connect to the Spotify Remote SDK.
   Future<bool> connectToSpotify() async {
     try {
+      // Step 1: OAuth via browser – user sees and approves the login
+      final token = await SpotifySdk.getAccessToken(
+        clientId: _clientId,
+        redirectUrl: _redirectUri,
+        scope: 'app-remote-control streaming',
+      ).timeout(
+        const Duration(seconds: 120),
+        onTimeout: () {
+          debugPrint('Spotify auth token timeout');
+          throw Exception('Auth timeout');
+        },
+      );
+
+      debugPrint('Spotify token obtained, connecting remote...');
+
+      // Step 2: Connect Remote SDK with the token (skips internal auth)
       return await SpotifySdk.connectToSpotifyRemote(
         clientId: _clientId,
         redirectUrl: _redirectUri,
+        accessToken: token,
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          debugPrint('Spotify remote connect timeout');
+          return false;
+        },
       );
     } catch (e) {
       debugPrint('Spotify connect error: $e');

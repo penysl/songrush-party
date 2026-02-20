@@ -204,8 +204,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         if (!connected) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
+              duration: Duration(seconds: 6),
               content: Text(
-                  'Spotify-Verbindung fehlgeschlagen. Ist die Spotify App installiert?'),
+                'Verbindung fehlgeschlagen. Bitte öffne die Spotify App zuerst und stelle sicher, dass du Spotify Premium hast.',
+              ),
             ),
           );
         }
