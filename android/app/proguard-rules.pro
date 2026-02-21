@@ -6,9 +6,13 @@
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 
+# Spotify SDK – keep all classes so R8 doesn't strip/obfuscate them
+-keep class com.spotify.** { *; }
+-keep interface com.spotify.** { *; }
+-keepattributes *Annotation*
+
 # Spotify SDK – suppress missing class warnings from R8
--dontwarn com.fasterxml.jackson.databind.deser.std.StdDeserializer
--dontwarn com.fasterxml.jackson.databind.ser.std.StdSerializer
+-dontwarn com.fasterxml.jackson.**
 -dontwarn com.google.errorprone.annotations.FormatMethod
 -dontwarn com.spotify.base.annotations.NotNull
 -dontwarn javax.annotation.Nonnull

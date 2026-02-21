@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show PlatformException, rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -64,27 +63,29 @@ class SpotifyService {
 
   Future<bool> connectToSpotify() async {
     try {
-      debugPrint('Spotify connecting remote...');
-      // OAuth-Flow zuerst – öffnet Spotify-Login falls noch nicht autorisiert
       await SpotifySdk.getAccessToken(
         clientId: _clientId,
         redirectUrl: _redirectUri,
         scope: 'app-remote-control,streaming,user-read-playback-state',
       );
-      return await SpotifySdk.connectToSpotifyRemote(
-        clientId: _clientId,
-        redirectUrl: _redirectUri,
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          debugPrint('Spotify remote connect timeout');
-          return false;
-        },
-      );
-    } catch (e) {
-      debugPrint('Spotify connect error: $e');
-      return false;
+    } on PlatformException catch (e) {
+      if (e.message?.contains('AUTHENTICATION_SERVICE_UNAVAILABLE') == true ||
+          e.code == 'authenticationTokenError') {
+        throw Exception(
+          'Spotify App nicht erreichbar.\n'
+          'Bitte öffne die Spotify App, stelle sicher dass du eingeloggt bist, '
+          'und tippe dann erneut auf "Spotify verbinden".',
+        );
+      }
+      rethrow;
     }
+    return await SpotifySdk.connectToSpotifyRemote(
+      clientId: _clientId,
+      redirectUrl: _redirectUri,
+    ).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => false,
+    );
   }
 
   Future<void> playTrack(String spotifyUri) async {
@@ -134,6 +135,26 @@ class SpotifyService {
     }
   }
 
+  /// Makes an authorized GET request.
+  /// Automatically ensures a valid token and retries once on 401.
+  Future<http.Response> _authorizedGet(Uri uri) async {
+    await _ensureToken();
+    var res = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $_accessToken'},
+    );
+    if (res.statusCode == 401) {
+      _accessToken = null;
+      _tokenExpiry = null;
+      await _ensureToken();
+      res = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $_accessToken'},
+      );
+    }
+    return res;
+  }
+
   // ──────────────────────────────────────────
   // GENRE SEARCH
   // ──────────────────────────────────────────
@@ -179,8 +200,6 @@ class SpotifyService {
 
   /// Spotify Search API fallback — used only when the local JSON is empty.
   Future<Map<String, dynamic>> _fetchRandomTrackFromApi(String genreKey) async {
-    await _ensureToken();
-
     final query = kSpotifyGenres[genreKey] ?? 'genre:pop';
     final offset = Random().nextInt(100);
 
@@ -193,17 +212,8 @@ class SpotifyService {
       },
     );
 
-    final response = await http.get(
-      uri,
-      headers: {'Authorization': 'Bearer $_accessToken'},
-    );
+    final response = await _authorizedGet(uri);
 
-    if (response.statusCode == 401) {
-      _accessToken = null;
-      _tokenExpiry = null;
-      await _ensureToken();
-      return _fetchRandomTrackFromApi(genreKey);
-    }
     if (response.statusCode == 429) _throw429(response);
     if (response.statusCode != 200) {
       throw Exception('Track search failed: ${response.body}');
@@ -239,22 +249,13 @@ class SpotifyService {
   /// One API call using `fields` — track count is read directly from the response
   /// and cached for the session.
   Future<Map<String, dynamic>> getPlaylistInfo(String playlistId) async {
-    await _ensureToken();
-
-    final response = await http.get(
+    final response = await _authorizedGet(
       Uri.parse(
         'https://api.spotify.com/v1/playlists/$playlistId'
         '?fields=name,tracks.total',
       ),
-      headers: {'Authorization': 'Bearer $_accessToken'},
     );
 
-    if (response.statusCode == 401) {
-      _accessToken = null;
-      _tokenExpiry = null;
-      await _ensureToken();
-      return getPlaylistInfo(playlistId);
-    }
     if (response.statusCode == 429) _throw429(response);
     if (response.statusCode == 403) {
       throw Exception('Zugriff verweigert (403). Ist die Playlist öffentlich?');
@@ -276,17 +277,10 @@ class SpotifyService {
 
   /// Fetches only the total track count (used when not already cached).
   Future<int> _fetchTrackCount(String playlistId) async {
-    final response = await http.get(
+    final response = await _authorizedGet(
       Uri.parse(
           'https://api.spotify.com/v1/playlists/$playlistId?fields=tracks.total'),
-      headers: {'Authorization': 'Bearer $_accessToken'},
     );
-    if (response.statusCode == 401) {
-      _accessToken = null;
-      _tokenExpiry = null;
-      await _ensureToken();
-      return _fetchTrackCount(playlistId);
-    }
     if (response.statusCode == 429) _throw429(response);
     if (response.statusCode != 200) {
       throw Exception('Track count failed (${response.statusCode})');
@@ -300,8 +294,6 @@ class SpotifyService {
   /// Fetches up to 50 tracks in a single API call and adds them (shuffled) to
   /// the in-memory pool for this playlist.
   Future<void> _refillPool(String playlistId) async {
-    await _ensureToken();
-
     final total =
         _trackCountCache[playlistId] ?? await _fetchTrackCount(playlistId);
     if (total == 0) return;
@@ -310,22 +302,14 @@ class SpotifyService {
     final offset = Random().nextInt(max(1, total - batchSize));
     final limit = batchSize.clamp(1, total - offset);
 
-    final response = await http.get(
+    final response = await _authorizedGet(
       Uri.parse(
         'https://api.spotify.com/v1/playlists/$playlistId/items'
         '?limit=$limit&offset=$offset'
         '&fields=items(track(id,name,artists(name),album(images),is_local))',
       ),
-      headers: {'Authorization': 'Bearer $_accessToken'},
     );
 
-    if (response.statusCode == 401) {
-      _accessToken = null;
-      _tokenExpiry = null;
-      await _ensureToken();
-      await _refillPool(playlistId);
-      return;
-    }
     if (response.statusCode == 429) _throw429(response);
     if (response.statusCode != 200) {
       throw Exception('Track pool fetch failed: ${response.body}');

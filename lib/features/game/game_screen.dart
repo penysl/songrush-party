@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,6 +28,14 @@ class GameScreen extends ConsumerWidget {
       body: StreamBuilder(
         stream: partyStream,
         builder: (context, partySnapshot) {
+          if (partySnapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Verbindung verloren',
+                style: TextStyle(color: Colors.white54, fontSize: 18),
+              ),
+            );
+          }
           if (!partySnapshot.hasData || partySnapshot.data!.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -41,7 +49,6 @@ class GameScreen extends ConsumerWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Determine if this player is the host
           final playerStream = ref
               .watch(supabaseServiceProvider)
               .players
@@ -60,17 +67,30 @@ class GameScreen extends ConsumerWidget {
 
               return roundAsync.when(
                 data: (round) {
+                  final Widget view;
+                  final String viewKey;
+
                   if (round == null || round.status == RoundStatus.finished) {
-                    return _WaitingView(
+                    viewKey = 'waiting';
+                    view = _WaitingView(
+                      key: const ValueKey('waiting'),
                       partyId: partyId,
                       playerId: playerId,
                       isHost: isHost,
                     );
-                  }
-
-                  // Round is 'answered' → show reveal
-                  if (round.status == RoundStatus.answered) {
-                    return _RevealView(
+                  } else if (round.status == RoundStatus.answered) {
+                    viewKey = 'reveal-${round.id}';
+                    view = _RevealView(
+                      key: ValueKey(viewKey),
+                      party: party,
+                      round: round,
+                      playerId: playerId,
+                      isHost: isHost,
+                    );
+                  } else {
+                    viewKey = 'active-${round.id}';
+                    view = _ActiveRoundView(
+                      key: ValueKey(viewKey),
                       party: party,
                       round: round,
                       playerId: playerId,
@@ -78,12 +98,9 @@ class GameScreen extends ConsumerWidget {
                     );
                   }
 
-                  // Round is 'playing'
-                  return _ActiveRoundView(
-                    party: party,
-                    round: round,
-                    playerId: playerId,
-                    isHost: isHost,
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: view,
                   );
                 },
                 loading: () =>
@@ -108,10 +125,24 @@ class _WaitingView extends ConsumerWidget {
   final bool isHost;
 
   const _WaitingView({
+    super.key,
     required this.partyId,
     required this.playerId,
     required this.isHost,
   });
+
+  Color _rankColor(int rank) {
+    switch (rank) {
+      case 1:
+        return const Color(0xFFFFD700); // Gold
+      case 2:
+        return const Color(0xFFC0C0C0); // Silber
+      case 3:
+        return const Color(0xFFCD7F32); // Bronze
+      default:
+        return Colors.grey[800]!;
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -145,7 +176,7 @@ class _WaitingView extends ConsumerWidget {
             ),
           ),
 
-          // Live scoreboard
+          // Live scoreboard (sorted by score)
           Expanded(
             child: StreamBuilder(
               stream: supabaseService.streamPlayers(partyId),
@@ -153,13 +184,18 @@ class _WaitingView extends ConsumerWidget {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final players = snapshot.data!;
+                final players = List<Map<String, dynamic>>.from(snapshot.data!);
+                players.sort((a, b) =>
+                    ((b['score'] as int?) ?? 0)
+                        .compareTo((a['score'] as int?) ?? 0));
+
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: players.length,
                   itemBuilder: (context, index) {
                     final p = players[index];
                     final isMe = p['id'] == playerId;
+                    final rank = index + 1;
                     return Card(
                       color: AppTheme.surface,
                       shape: RoundedRectangleBorder(
@@ -171,13 +207,13 @@ class _WaitingView extends ConsumerWidget {
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: p['is_host'] == true
-                              ? AppTheme.neonBlue
-                              : Colors.grey[800],
+                          backgroundColor: _rankColor(rank),
                           child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold),
+                            '$rank',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: rank <= 3 ? Colors.black : Colors.white,
+                            ),
                           ),
                         ),
                         title: Text(
@@ -188,13 +224,23 @@ class _WaitingView extends ConsumerWidget {
                                 : FontWeight.normal,
                           ),
                         ),
-                        trailing: Text(
-                          '${p['score']} Pts',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.neonPink,
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${p['score']} Pts',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.neonPink,
+                              ),
+                            ),
+                            if (p['is_host'] == true) ...[
+                              const SizedBox(width: 6),
+                              const Icon(Icons.star,
+                                  size: 16, color: AppTheme.neonBlue),
+                            ],
+                          ],
                         ),
                       ),
                     );
@@ -301,6 +347,7 @@ class _ActiveRoundView extends ConsumerWidget {
   final bool isHost;
 
   const _ActiveRoundView({
+    super.key,
     required this.party,
     required this.round,
     required this.playerId,
@@ -338,7 +385,6 @@ class _ActiveRoundView extends ConsumerWidget {
                     fontSize: 16,
                   ),
                 ),
-                // Host gets pause/skip controls
                 if (isHost) ...[
                   const Spacer(),
                   IconButton(
@@ -373,7 +419,7 @@ class _ActiveRoundView extends ConsumerWidget {
   }
 }
 
-// ── Active player: input field ───────────────────────────────
+// ── Active player: input field (no timer) ────────────────────
 
 class _GuessInputView extends ConsumerStatefulWidget {
   final Round round;
@@ -387,49 +433,11 @@ class _GuessInputView extends ConsumerStatefulWidget {
 
 class _GuessInputViewState extends ConsumerState<_GuessInputView> {
   final _controller = TextEditingController();
-  Timer? _timer;
-  int _secondsLeft = 30;
   bool _submitted = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) {
-        t.cancel();
-        return;
-      }
-      setState(() => _secondsLeft--);
-      if (_secondsLeft <= 0) {
-        t.cancel();
-        _onTimeout();
-      }
-    });
-  }
-
-  Future<void> _onTimeout() async {
-    if (_submitted || !mounted) return;
-    setState(() => _submitted = true);
-    try {
-      await ref.read(supabaseServiceProvider).rounds.update({
-        'status': 'answered',
-      }).eq('id', widget.round.id);
-    } catch (e) {
-      debugPrint('Timeout-Submit fehlgeschlagen: $e');
-    }
-    try {
-      await ref.read(spotifyServiceProvider).pausePlayback();
-    } catch (_) {}
-  }
 
   Future<void> _submit() async {
     final answer = _controller.text.trim();
     if (answer.isEmpty || _submitted) return;
-    _timer?.cancel();
     setState(() => _submitted = true);
 
     await ref.read(gameControllerProvider).submitAnswer(
@@ -442,7 +450,6 @@ class _GuessInputViewState extends ConsumerState<_GuessInputView> {
 
   @override
   void dispose() {
-    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -456,7 +463,8 @@ class _GuessInputViewState extends ConsumerState<_GuessInputView> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('Antwort wird geprüft...', style: TextStyle(color: Colors.white54)),
+            Text('Antwort wird geprüft...',
+                style: TextStyle(color: Colors.white54)),
           ],
         ),
       );
@@ -467,31 +475,30 @@ class _GuessInputViewState extends ConsumerState<_GuessInputView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Timer ring
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 100,
-                height: 100,
-                child: CircularProgressIndicator(
-                  value: _secondsLeft / 30,
-                  strokeWidth: 8,
-                  backgroundColor: Colors.grey[800],
-                  valueColor: AlwaysStoppedAnimation(
-                    _secondsLeft <= 5 ? Colors.red : AppTheme.neonBlue,
-                  ),
-                ),
+          // Pulsing music icon instead of timer
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.85, end: 1.15),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeInOut,
+            builder: (context, scale, child) => Transform.scale(
+              scale: scale,
+              child: child,
+            ),
+            onEnd: () => setState(() {}), // retrigger animation
+            child: Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.neonBlue, width: 3),
+                color: AppTheme.neonBlue.withValues(alpha: 0.1),
               ),
-              Text(
-                '$_secondsLeft',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: _secondsLeft <= 5 ? Colors.red : Colors.white,
-                ),
+              child: const Icon(
+                Icons.headphones,
+                size: 48,
+                color: AppTheme.neonBlue,
               ),
-            ],
+            ),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -580,7 +587,6 @@ class _OtherPlayerWaitView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Look up active player name
     final playerStream = round.activePlayerId != null
         ? ref
             .watch(supabaseServiceProvider)
@@ -601,27 +607,55 @@ class _OtherPlayerWaitView extends ConsumerWidget {
             ? snapshot.data!.first['name'] as String
             : '...';
 
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.music_note, size: 72, color: Colors.white24),
-              const SizedBox(height: 24),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.neonBlue,
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Blurred album cover as background (if available)
+            if (round.albumCoverUrl != null) ...[
+              Image.network(
+                round.albumCoverUrl!,
+                fit: BoxFit.cover,
+              ),
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.65),
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'ist dran',
-                style: TextStyle(fontSize: 20, color: Colors.white54),
-              ),
             ],
-          ),
+            // Foreground content
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (round.albumCoverUrl == null)
+                    const Icon(Icons.music_note,
+                        size: 72, color: Colors.white24),
+                  if (round.albumCoverUrl == null)
+                    const SizedBox(height: 24),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.neonBlue,
+                      shadows: [
+                        Shadow(
+                            color: Colors.black54,
+                            blurRadius: 8,
+                            offset: Offset(0, 2))
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'ist dran',
+                    style: TextStyle(fontSize: 20, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
@@ -639,6 +673,7 @@ class _RevealView extends ConsumerWidget {
   final bool isHost;
 
   const _RevealView({
+    super.key,
     required this.party,
     required this.round,
     required this.playerId,
@@ -697,9 +732,10 @@ class _RevealView extends ConsumerWidget {
                         .eq('id', round.activePlayerId ?? '')
                         .limit(1),
                     builder: (context, snapshot) {
-                      final name = snapshot.hasData && snapshot.data!.isNotEmpty
-                          ? snapshot.data!.first['name'] as String
-                          : '...';
+                      final name =
+                          snapshot.hasData && snapshot.data!.isNotEmpty
+                              ? snapshot.data!.first['name'] as String
+                              : '...';
                       return Text(
                         '$name hat es gewusst!',
                         style: const TextStyle(
@@ -787,8 +823,6 @@ class _RevealView extends ConsumerWidget {
       ),
     );
   }
-
-
 }
 
 class _NextRoundButton extends ConsumerStatefulWidget {
