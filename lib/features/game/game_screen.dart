@@ -267,7 +267,10 @@ class _StartRoundButtonState extends ConsumerState<_StartRoundButton> {
               child: CircularProgressIndicator(
                   color: Colors.white, strokeWidth: 2),
             )
-          : const Text('RUNDE STARTEN'),
+          : const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('RUNDE STARTEN'),
+            ),
     );
   }
 
